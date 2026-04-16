@@ -306,6 +306,7 @@ export default function ClubAdminPage({
     member_email_domain: "",
   });
   const [brandingSaving, setBrandingSaving] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
   const fetchMemberships = useCallback(async (clubId: number) => {
@@ -411,6 +412,27 @@ export default function ClubAdminPage({
       body: JSON.stringify({ path: `/klubb/${slug}` }),
     });
     showSuccess("Endringer lagret");
+  }
+
+  async function handleLogoUpload(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !club) return;
+    setLogoUploading(true);
+    const ext = file.name.split(".").pop() ?? "png";
+    const path = `club-logos/${club.id}_${Date.now()}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from("listing-images")
+      .upload(path, file, { upsert: true });
+    if (error) {
+      showError(`Opplasting feilet: ${error.message}`);
+      setLogoUploading(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage
+      .from("listing-images")
+      .getPublicUrl(data.path);
+    setBranding((prev) => ({ ...prev, logo_url: urlData.publicUrl }));
+    setLogoUploading(false);
   }
 
   async function handleMarkSold(listingId: number) {
@@ -969,17 +991,47 @@ export default function ClubAdminPage({
               <h3 className="font-display text-base font-semibold text-ink">Logo & beskrivelse</h3>
 
               <div>
-                <label className="block text-sm font-medium text-ink mb-1.5">Logo URL</label>
-                <input
-                  type="url"
-                  value={branding.logo_url}
-                  onChange={(e) => setBranding({ ...branding, logo_url: e.target.value })}
-                  placeholder="https://eksempel.no/logo.png"
-                  className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
-                />
-                <p className="text-xs text-ink-light mt-1.5">
-                  Lim inn en direkte lenke til logoen. Vises i banneret i stedet for initialene.
-                </p>
+                <label className="block text-sm font-medium text-ink mb-3">Klubblogo</label>
+                <div className="flex items-center gap-4">
+                  {/* Preview */}
+                  <div
+                    className="h-16 w-16 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-border"
+                    style={{ backgroundColor: branding.logo_url ? "transparent" : club.color }}
+                  >
+                    {branding.logo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={branding.logo_url} alt="Logo" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-white font-bold text-lg">{club.initials}</span>
+                    )}
+                  </div>
+
+                  <div className="flex-1 space-y-2">
+                    <label className={`inline-flex items-center gap-2 cursor-pointer rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors duration-[120ms] ${logoUploading ? "opacity-50 cursor-not-allowed" : "hover:bg-cream"}`}>
+                      <svg className="h-4 w-4 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                      </svg>
+                      {logoUploading ? "Laster opp..." : "Last opp bilde"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        disabled={logoUploading}
+                        onChange={handleLogoUpload}
+                      />
+                    </label>
+                    {branding.logo_url && (
+                      <button
+                        type="button"
+                        onClick={() => setBranding({ ...branding, logo_url: "" })}
+                        className="block text-xs text-ink-light hover:text-red-500 transition-colors duration-[120ms]"
+                      >
+                        Fjern logo
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-ink-light mt-2">PNG, JPG eller SVG. Vises i banneret i stedet for initialene.</p>
               </div>
 
               <div>
