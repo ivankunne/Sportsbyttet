@@ -65,6 +65,38 @@ export default function RegistreringerPage() {
 
   async function updateStatus(id: number, status: string) {
     setUpdating(true);
+    const reg = registrations.find((r) => r.id === id);
+
+    // When approving, create the club row if it doesn't exist yet
+    if (status === "approved" && reg) {
+      const slug =
+        reg.club_name
+          .toLowerCase()
+          .replace(/æ/g, "ae").replace(/ø/g, "o").replace(/å/g, "a")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "") +
+        "-" +
+        Math.random().toString(36).slice(2, 6);
+
+      const initials = reg.club_name
+        .split(/\s+/)
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+
+      await supabase.from("clubs").insert({
+        name: reg.club_name,
+        slug,
+        initials,
+        color: reg.primary_color || "#1a3c2e",
+        secondary_color: reg.secondary_color || null,
+        description: reg.description || null,
+        logo_url: reg.logo_url || null,
+        invite_token: crypto.randomUUID(),
+      });
+    }
+
     await supabase.from("club_registrations").update({ status }).eq("id", id);
     setRegistrations((prev) =>
       prev.map((r) => (r.id === id ? { ...r, status } : r))
