@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { contrastColor } from "@/lib/color";
 
 type Registration = {
   id: number;
@@ -216,7 +217,7 @@ export default function RegistreringerPage() {
                 <span className="text-white font-display font-bold truncate">{selected.club_name}</span>
                 <span
                   className="ml-auto rounded-lg px-3 py-1 text-xs font-semibold text-white flex-shrink-0"
-                  style={{ backgroundColor: selected.secondary_color || "#e8843a" }}
+                  style={{ backgroundColor: selected.secondary_color || "#e8843a", color: contrastColor(selected.secondary_color || "#e8843a") }}
                 >
                   Bli med
                 </span>

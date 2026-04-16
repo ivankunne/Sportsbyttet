@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { updateMembershipStatus } from "@/lib/queries";
 import { ClubAnnouncements } from "@/components/ClubAnnouncements";
 import { showSuccess, showError } from "@/components/Toaster";
+import { contrastColor } from "@/lib/color";
 import type { Club, ListingWithRelations, Profile } from "@/lib/queries";
 import type { MembershipWithProfile } from "@/lib/queries";
 
@@ -974,8 +975,8 @@ export default function ClubAdminPage({
                   <span className="text-white font-display font-bold">{club.name}</span>
                   <button
                     type="button"
-                    className="ml-auto rounded-lg px-4 py-1.5 text-xs font-semibold text-white"
-                    style={{ backgroundColor: branding.secondary_color || branding.color }}
+                    className="ml-auto rounded-lg px-4 py-1.5 text-xs font-semibold"
+                    style={{ backgroundColor: branding.secondary_color || branding.color, color: contrastColor(branding.secondary_color || branding.color) }}
                   >
                     Bli med
                   </button>

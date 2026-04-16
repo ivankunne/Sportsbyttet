@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createMembershipRequest } from "@/lib/queries";
+import { contrastColor } from "@/lib/color";
 
 type Props = {
   clubId: number;
@@ -52,8 +53,11 @@ export function JoinClubButton({ clubId, clubName, isMembershipGated, memberEmai
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-lg px-5 py-2 text-sm font-semibold text-white hover:brightness-92 transition-all duration-[120ms]"
-        style={{ backgroundColor: accentColor || "#e8843a" }}
+        className="rounded-lg px-5 py-2 text-sm font-semibold hover:brightness-92 transition-all duration-[120ms]"
+        style={{
+          backgroundColor: accentColor || "#e8843a",
+          color: contrastColor(accentColor || "#e8843a"),
+        }}
       >
         {isMembershipGated ? "Søk om medlemskap" : "Bli med i klubben"}
       </button>

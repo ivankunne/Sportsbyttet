@@ -3,6 +3,7 @@
 import { useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { contrastColor } from "@/lib/color";
 
 export default function RegisterClubPage() {
   const [step, setStep] = useState(1);
@@ -307,7 +308,7 @@ export default function RegisterClubPage() {
                     )}
                   </div>
                   <span className="text-white font-display font-bold truncate">{clubName || "Klubbnavnet ditt"}</span>
-                  <button type="button" className="ml-auto rounded-lg px-4 py-1.5 text-xs font-semibold text-white flex-shrink-0" style={{ backgroundColor: secondaryColor || "#e8843a" }}>
+                  <button type="button" className="ml-auto rounded-lg px-4 py-1.5 text-xs font-semibold flex-shrink-0" style={{ backgroundColor: secondaryColor || "#e8843a", color: contrastColor(secondaryColor || "#e8843a") }}>
                     Bli med
                   </button>
                 </div>
