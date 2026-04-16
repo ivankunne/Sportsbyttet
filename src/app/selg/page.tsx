@@ -114,9 +114,10 @@ export default function SellPage() {
       if (listingType === "bulk" && form.quantity) specs["Antall"] = form.quantity;
       if (listingType === "bulk" && form.sizeRange) specs["Størrelser"] = form.sizeRange;
 
-      const { data, error: insertErr } = await supabase
-        .from("listings")
-        .insert({
+      const res = await fetch("/api/create-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           title: form.title.trim(),
           description: form.description.trim() || null,
           category: selectedCategory,
@@ -131,12 +132,12 @@ export default function SellPage() {
           quantity: listingType === "bulk" ? parseInt(form.quantity || "2") : null,
           size_range: listingType === "bulk" ? form.sizeRange || null : null,
           is_sold: false,
-        })
-        .select("id")
-        .single();
+        }),
+      });
 
-      if (insertErr) throw insertErr;
-      router.push(`/annonse/${data.id}`);
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error ?? "Noe gikk galt");
+      router.push(`/annonse/${result.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Noe gikk galt. Prøv igjen.");
       setSubmitting(false);
