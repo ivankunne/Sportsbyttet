@@ -69,7 +69,7 @@ export function LoginModal({ onClose }: Props) {
             <img
               src="/Vipps-Logo.png"
               alt="Vipps"
-              className="w-16 flex-shrink-0 brightness-0 invert"
+              className="h-7 w-auto flex-shrink-0 brightness-0 invert"
             />
           </button>
 
