@@ -1,11 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 export default function RegisterClubPage() {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+
+  // Step 3 state
+  const [logoUrl, setLogoUrl] = useState("");
+  const [logoPreview, setLogoPreview] = useState("");
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [primaryColor, setPrimaryColor] = useState("#1a3c2e");
+  const [secondaryColor, setSecondaryColor] = useState("");
+  const [clubNamePreview, setClubNamePreview] = useState("");
+
+  async function handleLogoUpload(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoPreview(URL.createObjectURL(file));
+    setLogoUploading(true);
+    const ext = file.name.split(".").pop() ?? "png";
+    const path = `club-logos/pending_${Date.now()}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from("listing-images")
+      .upload(path, file, { upsert: true });
+    if (error) {
+      setLogoPreview("");
+      setLogoUploading(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage
+      .from("listing-images")
+      .getPublicUrl(data.path);
+    setLogoUrl(urlData.publicUrl);
+    setLogoUploading(false);
+  }
 
   if (submitted) {
     return (
@@ -116,6 +147,7 @@ export default function RegisterClubPage() {
                 id="club-name"
                 type="text"
                 placeholder="F.eks. Bergen Skiklubb"
+                onChange={(e) => setClubNamePreview(e.target.value)}
                 className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
               />
             </div>
@@ -201,10 +233,10 @@ export default function RegisterClubPage() {
               </div>
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-ink mb-1.5">
+              <label htmlFor="contact-email" className="block text-sm font-medium text-ink mb-1.5">
                 E-post *
               </label>
-              <input id="email" type="email" placeholder="din@epost.no" className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest" />
+              <input id="contact-email" type="email" placeholder="din@epost.no" className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest" />
             </div>
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-ink mb-1.5">
@@ -229,23 +261,153 @@ export default function RegisterClubPage() {
         )}
 
         {step === 3 && (
-          <div className="space-y-5">
-            <h2 className="font-display text-xl font-semibold text-ink mb-6">
+          <div className="space-y-6">
+            <h2 className="font-display text-xl font-semibold text-ink">
               Tilpass klubbsiden
             </h2>
+
+            {/* Logo upload */}
             <div>
-              <label className="block text-sm font-medium text-ink mb-3">
-                Klubblogo
-              </label>
-              <div className="rounded-xl border-2 border-dashed border-border bg-cream/50 p-8 text-center">
-                <div className="mx-auto h-20 w-20 rounded-full bg-border flex items-center justify-center mb-3">
-                  <svg className="h-8 w-8 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                  </svg>
+              <label className="block text-sm font-medium text-ink mb-3">Klubblogo</label>
+              <div className="flex items-center gap-4">
+                <div
+                  className="h-16 w-16 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-border"
+                  style={{ backgroundColor: logoPreview ? "transparent" : primaryColor }}
+                >
+                  {logoPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={logoPreview} alt="Logo" className="h-full w-full object-cover" />
+                  ) : (
+                    <svg className="h-6 w-6 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                  )}
                 </div>
-                <p className="text-sm text-ink-light">Last opp logo (PNG eller SVG)</p>
+                <div className="space-y-2">
+                  <label className={`inline-flex items-center gap-2 cursor-pointer rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors duration-[120ms] ${logoUploading ? "opacity-50 cursor-not-allowed" : "hover:bg-cream"}`}>
+                    <svg className="h-4 w-4 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                    </svg>
+                    {logoUploading ? "Laster opp..." : logoPreview ? "Bytt logo" : "Last opp logo"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      disabled={logoUploading}
+                      onChange={handleLogoUpload}
+                    />
+                  </label>
+                  {logoPreview && (
+                    <button
+                      type="button"
+                      onClick={() => { setLogoPreview(""); setLogoUrl(""); }}
+                      className="block text-xs text-ink-light hover:text-red-500 transition-colors duration-[120ms]"
+                    >
+                      Fjern logo
+                    </button>
+                  )}
+                  {logoUploading && (
+                    <p className="text-xs text-ink-light">Laster opp til skyen...</p>
+                  )}
+                  {logoUrl && !logoUploading && (
+                    <p className="text-xs text-forest">Logo lastet opp ✓</p>
+                  )}
+                </div>
+              </div>
+              <p className="text-xs text-ink-light mt-2">PNG, JPG eller SVG anbefales.</p>
+            </div>
+
+            {/* Color pickers */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-medium text-ink mb-2">Primærfarge *</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="h-10 w-14 rounded-lg border border-border cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    placeholder="#1a3c2e"
+                    className="flex-1 rounded-lg border border-border px-3 py-2 text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
+                  />
+                </div>
+                <p className="text-xs text-ink-light mt-1.5">Bannerfarge og hovedflater</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-ink mb-2">Sekundærfarge <span className="font-normal text-ink-light">(valgfritt)</span></label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={secondaryColor || primaryColor}
+                    onChange={(e) => setSecondaryColor(e.target.value)}
+                    className="h-10 w-14 rounded-lg border border-border cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={secondaryColor}
+                    onChange={(e) => setSecondaryColor(e.target.value)}
+                    placeholder="Tomt = samme som primær"
+                    className="flex-1 rounded-lg border border-border px-3 py-2 text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
+                  />
+                  {secondaryColor && (
+                    <button
+                      type="button"
+                      onClick={() => setSecondaryColor("")}
+                      className="text-xs text-ink-light hover:text-red-500 transition-colors flex-shrink-0"
+                    >
+                      Nullstill
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-ink-light mt-1.5">Knapper og accenter</p>
               </div>
             </div>
+
+            {/* Live banner preview */}
+            <div>
+              <p className="text-xs font-semibold text-ink-light uppercase tracking-wider mb-2">Forhåndsvisning</p>
+              <div className="rounded-xl overflow-hidden border border-border">
+                <div
+                  className="px-5 py-4 flex items-center gap-3"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <div
+                    className="h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-white/30"
+                    style={{ backgroundColor: secondaryColor || primaryColor }}
+                  >
+                    {logoPreview ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={logoPreview} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-white font-bold text-sm">
+                        {(clubNamePreview || "K").slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-white font-display font-bold truncate">
+                    {clubNamePreview || "Klubbnavnet ditt"}
+                  </span>
+                  <button
+                    type="button"
+                    className="ml-auto rounded-lg px-4 py-1.5 text-xs font-semibold text-white flex-shrink-0"
+                    style={{ backgroundColor: secondaryColor || "#e8843a" }}
+                  >
+                    Bli med
+                  </button>
+                </div>
+                <div className="bg-white px-5 py-2.5">
+                  <p className="text-xs text-ink-light">Slik ser klubbsiden ut for besøkende</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-ink mb-1.5">
                 Kort beskrivelse av klubben
@@ -256,18 +418,6 @@ export default function RegisterClubPage() {
                 placeholder="Fortell litt om klubben, aktiviteter, og hvorfor dere vil bruke Sportsbyttet..."
                 className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest resize-none"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-ink mb-3">Klubbfarger</label>
-              <div className="flex gap-3">
-                {["#1a3c2e", "#1e3a5c", "#5c1e2e", "#5c3d1e", "#8B0000", "#2d2d2d"].map((color) => (
-                  <button
-                    key={color}
-                    className="h-10 w-10 rounded-full border-2 border-white shadow-sm ring-2 ring-transparent hover:ring-forest/30 transition-all"
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
-              </div>
             </div>
           </div>
         )}
