@@ -29,6 +29,10 @@ export const metadata: Metadata = {
   },
   description:
     "Norges markedsplass for brukt sportsutstyr. Kjøp og selg direkte mellom klubbmedlemmer. Trygg betaling med Vipps, enkel frakt med Bring.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
   openGraph: {
     type: "website",
     locale: "nb_NO",
