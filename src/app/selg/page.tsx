@@ -1,53 +1,215 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { Category } from "@/lib/queries";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import type { Category, Club, Profile } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
-import { showComingSoon } from "@/components/Toaster";
+
+type ListingType = "regular" | "iso" | "bulk";
 
 export default function SellPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const router = useRouter();
+  const [listingType, setListingType] = useState<ListingType>("regular");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedShipping, setSelectedShipping] = useState("bring");
   const [categories, setCategories] = useState<Category[]>([]);
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [selectedClubId, setSelectedClubId] = useState<number | null>(null);
+  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [error, setError] = useState<string>("");
+  const [form, setForm] = useState({
+    title: "",
+    condition: "",
+    wearDescription: "",
+    price: "",
+    description: "",
+    quantity: "2",
+    sizeRange: "",
+    membersOnly: false,
+  });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    supabase.from("categories").select("*").order("id").then(({ data }) => {
-      if (data) setCategories(data);
+    Promise.all([
+      supabase.from("categories").select("*").order("id"),
+      supabase.from("clubs").select("*").order("members", { ascending: false }),
+    ]).then(([{ data: cats }, { data: clubsData }]) => {
+      if (cats) setCategories(cats);
+      if (clubsData) setClubs(clubsData);
     });
   }, []);
+
+  useEffect(() => {
+    if (!selectedClubId) {
+      setProfiles([]);
+      setSelectedProfileId(null);
+      return;
+    }
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("club_id", selectedClubId)
+      .then(({ data }) => {
+        if (data) setProfiles(data);
+      });
+  }, [selectedClubId]);
+
+  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const incoming = Array.from(e.target.files ?? []);
+    const combined = [...imageFiles, ...incoming].slice(0, 8);
+    setImageFiles(combined);
+    setImagePreviews(combined.map((f) => URL.createObjectURL(f)));
+    // reset input so same file can be re-added after removal
+    e.target.value = "";
+  }
+
+  function removeImage(index: number) {
+    const newFiles = imageFiles.filter((_, i) => i !== index);
+    setImageFiles(newFiles);
+    setImagePreviews(newFiles.map((f) => URL.createObjectURL(f)));
+  }
+
+  async function uploadImages(): Promise<string[]> {
+    if (imageFiles.length === 0) return [];
+    const urls: string[] = [];
+    for (const file of imageFiles) {
+      const path = `${Date.now()}_${Math.random().toString(36).slice(2)}_${file.name}`;
+      const { data, error: uploadErr } = await supabase.storage
+        .from("listing-images")
+        .upload(path, file);
+      if (uploadErr) throw uploadErr;
+      const { data: urlData } = supabase.storage
+        .from("listing-images")
+        .getPublicUrl(data.path);
+      urls.push(urlData.publicUrl);
+    }
+    return urls;
+  }
+
+  async function handleSubmit() {
+    setError("");
+
+    if (!selectedCategory) return setError("Velg en kategori");
+    if (!form.title.trim()) return setError("Skriv inn en tittel");
+    if (!selectedClubId) return setError("Velg din klubb");
+    if (!selectedProfileId) return setError("Velg din profil");
+    if (listingType !== "iso" && !form.condition) return setError("Velg stand på utstyret");
+    if (listingType !== "iso" && !form.price) return setError("Skriv inn pris");
+
+    setSubmitting(true);
+    try {
+      setUploading(true);
+      const imageUrls = await uploadImages();
+      setUploading(false);
+
+      const specs: Record<string, string> = {};
+      if (form.condition) specs["Stand"] = form.condition;
+      if (form.wearDescription) specs["Slitasje"] = form.wearDescription;
+      if (listingType === "bulk" && form.quantity) specs["Antall"] = form.quantity;
+      if (listingType === "bulk" && form.sizeRange) specs["Størrelser"] = form.sizeRange;
+
+      const { data, error: insertErr } = await supabase
+        .from("listings")
+        .insert({
+          title: form.title.trim(),
+          description: form.description.trim() || null,
+          category: selectedCategory,
+          condition: listingType === "iso" ? "Søker" : form.condition,
+          price: parseInt(form.price || "0"),
+          images: imageUrls,
+          specs,
+          club_id: selectedClubId,
+          seller_id: selectedProfileId,
+          listing_type: listingType,
+          members_only: form.membersOnly,
+          quantity: listingType === "bulk" ? parseInt(form.quantity || "2") : null,
+          size_range: listingType === "bulk" ? form.sizeRange || null : null,
+          is_sold: false,
+        })
+        .select("id")
+        .single();
+
+      if (insertErr) throw insertErr;
+      router.push(`/annonse/${data.id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Noe gikk galt. Prøv igjen.");
+      setSubmitting(false);
+      setUploading(false);
+    }
+  }
+
+  const isISO = listingType === "iso";
+  const isBulk = listingType === "bulk";
+  const step4Num = isISO ? "3" : "4";
+  const step5Num = isISO ? "4" : "5";
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-8 sm:py-12">
       <div className="text-center mb-10">
         <h1 className="font-display text-3xl sm:text-4xl font-bold text-ink">
-          Selg utstyr
+          {isISO ? "Ettersøk utstyr" : "Selg utstyr"}
         </h1>
         <p className="mt-2 text-ink-mid">
-          Nå hundrevis av sportsentusiaster i din klubb og på plattformen.
+          {isISO
+            ? "Fortell hva du ser etter — la andre klubbmedlemmer finne det for deg."
+            : "Nå hundrevis av sportsentusiaster i din klubb og på plattformen."}
         </p>
       </div>
 
       <div className="space-y-10">
-        {/* Step 1: Category */}
+
+        {/* Step 1: Listing type */}
         <section>
           <div className="flex items-center gap-3 mb-5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-white text-sm font-bold">
-              1
-            </span>
-            <h2 className="font-display text-xl font-semibold text-ink">
-              Velg kategori
-            </h2>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-white text-sm font-bold">1</span>
+            <h2 className="font-display text-xl font-semibold text-ink">Type annonse</h2>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {([
+              { id: "regular" as const, label: "Selg utstyr", emoji: "🏷️", desc: "Selg ett enkelt utstyr" },
+              { id: "iso" as const, label: "Ettersøk (ISO)", emoji: "🔍", desc: "Søker etter bestemt utstyr" },
+              { id: "bulk" as const, label: "Massesalg", emoji: "📦", desc: "Selg lag-utstyr i bulk" },
+            ]).map((type) => (
+              <button
+                key={type.id}
+                onClick={() => setListingType(type.id)}
+                className={`flex flex-col gap-2 rounded-xl p-4 text-left transition-all duration-[120ms] ${
+                  listingType === type.id
+                    ? "bg-forest text-white ring-2 ring-forest ring-offset-2"
+                    : "bg-white text-ink hover:bg-border/60"
+                }`}
+              >
+                <span className="text-2xl">{type.emoji}</span>
+                <span className="text-sm font-semibold">{type.label}</span>
+                <span className={`text-xs leading-snug ${listingType === type.id ? "text-white/70" : "text-ink-light"}`}>
+                  {type.desc}
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
 
+        {/* Step 2: Category */}
+        <section>
+          <div className="flex items-center gap-3 mb-5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-white text-sm font-bold">2</span>
+            <h2 className="font-display text-xl font-semibold text-ink">Velg kategori</h2>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {categories.map((cat) => (
               <button
                 key={cat.slug}
-                onClick={() => setSelectedCategory(cat.slug)}
-                className={`flex items-center gap-3 rounded-xl p-4 text-left transition-all ${
-                  selectedCategory === cat.slug
+                onClick={() => setSelectedCategory(cat.name)}
+                className={`flex items-center gap-3 rounded-xl p-4 text-left transition-all duration-[120ms] ${
+                  selectedCategory === cat.name
                     ? "bg-forest text-white ring-2 ring-forest ring-offset-2"
-                    : "bg-white text-ink hover:bg-border"
+                    : "bg-white text-ink hover:bg-border/60"
                 }`}
               >
                 <span className="text-2xl">{cat.emoji}</span>
@@ -57,117 +219,167 @@ export default function SellPage() {
           </div>
         </section>
 
-        {/* Step 2: Photos */}
-        <section>
-          <div className="flex items-center gap-3 mb-5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-white text-sm font-bold">
-              2
-            </span>
-            <h2 className="font-display text-xl font-semibold text-ink">
-              Legg til bilder
-            </h2>
-          </div>
+        {/* Step 3: Photos — skip for ISO */}
+        {!isISO && (
+          <section>
+            <div className="flex items-center gap-3 mb-5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-white text-sm font-bold">3</span>
+              <h2 className="font-display text-xl font-semibold text-ink">Legg til bilder</h2>
+            </div>
 
-          {/* TODO MVP: Replace with real image upload to Supabase Storage */}
-          <div className="rounded-xl border-2 border-dashed border-border bg-white p-8 text-center hover:border-forest/30 transition-colors duration-[120ms] cursor-pointer">
-            <svg className="mx-auto h-12 w-12 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-            </svg>
-            <p className="mt-3 text-sm font-medium text-ink">
-              Dra bilder hit eller klikk for å laste opp
-            </p>
-            <p className="mt-1 text-xs text-ink-light">
-              Legg til opptil 8 bilder • Første bilde blir hovedbilde
-            </p>
-          </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleImageSelect}
+            />
 
-          <div className="mt-3 grid grid-cols-4 gap-3">
-            {[1, 2, 3, 4].map((i) => (
+            {imagePreviews.length === 0 ? (
               <div
-                key={i}
-                className="aspect-square rounded-lg border-2 border-dashed border-border bg-white flex items-center justify-center"
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-xl border-2 border-dashed border-border bg-white p-8 text-center hover:border-forest/30 transition-colors duration-[120ms] cursor-pointer"
               >
-                <svg className="h-6 w-6 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                <svg className="mx-auto h-12 w-12 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                 </svg>
+                <p className="mt-3 text-sm font-medium text-ink">Dra bilder hit eller klikk for å laste opp</p>
+                <p className="mt-1 text-xs text-ink-light">Opptil 8 bilder • Første bilde blir hovedbilde</p>
               </div>
-            ))}
-          </div>
-        </section>
+            ) : (
+              <div className="grid grid-cols-4 gap-3">
+                {imagePreviews.map((src, i) => (
+                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-border">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={src} alt="" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => removeImage(i)}
+                      className="absolute top-1 right-1 h-5 w-5 rounded-full bg-ink/70 text-white flex items-center justify-center text-xs hover:bg-ink transition-colors"
+                    >
+                      ×
+                    </button>
+                    {i === 0 && (
+                      <span className="absolute bottom-1 left-1 text-[10px] font-bold bg-forest text-white rounded px-1 py-0.5">
+                        Hoved
+                      </span>
+                    )}
+                  </div>
+                ))}
+                {imagePreviews.length < 8 && (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="aspect-square rounded-lg border-2 border-dashed border-border bg-white flex items-center justify-center hover:border-forest/30 transition-colors duration-[120ms]"
+                  >
+                    <svg className="h-6 w-6 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
+          </section>
+        )}
 
-        {/* Step 3: Details */}
+        {/* Step 4: Details */}
         <section>
           <div className="flex items-center gap-3 mb-5">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-white text-sm font-bold">
-              3
+              {step4Num}
             </span>
-            <h2 className="font-display text-xl font-semibold text-ink">
-              Detaljer
-            </h2>
+            <h2 className="font-display text-xl font-semibold text-ink">Detaljer</h2>
           </div>
 
           <div className="space-y-5 bg-white rounded-xl p-6">
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-ink mb-1.5">
-                Tittel
+                {isISO ? "Hva ser du etter?" : "Tittel"}
               </label>
               <input
                 id="title"
                 type="text"
-                placeholder='F.eks. "Salomon QST 106 ski — 180cm"'
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder={isISO
+                  ? 'F.eks. "Slalom ski str 170–180 cm, dame"'
+                  : 'F.eks. "Salomon QST 106 ski — 180 cm"'}
                 className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {!isISO && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label htmlFor="condition" className="block text-sm font-medium text-ink mb-1.5">Stand</label>
+                  <select
+                    id="condition"
+                    value={form.condition}
+                    onChange={(e) => setForm({ ...form, condition: e.target.value })}
+                    className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
+                  >
+                    <option value="">Velg stand</option>
+                    <option>Som ny</option>
+                    <option>Pent brukt</option>
+                    <option>Godt brukt</option>
+                    <option>Mye brukt</option>
+                  </select>
+                </div>
+                {isBulk && (
+                  <div>
+                    <label htmlFor="quantity" className="block text-sm font-medium text-ink mb-1.5">Antall enheter</label>
+                    <input
+                      id="quantity"
+                      type="number"
+                      min="2"
+                      value={form.quantity}
+                      onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+                      className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isBulk && (
               <div>
-                <label htmlFor="length" className="block text-sm font-medium text-ink mb-1.5">
-                  Lengde (cm)
+                <label htmlFor="sizeRange" className="block text-sm font-medium text-ink mb-1.5">
+                  Størrelser tilgjengelig
                 </label>
                 <input
-                  id="length"
-                  type="number"
-                  placeholder="F.eks. 180"
+                  id="sizeRange"
+                  type="text"
+                  value={form.sizeRange}
+                  onChange={(e) => setForm({ ...form, sizeRange: e.target.value })}
+                  placeholder="F.eks. XS, S, M, L, XL eller 160–180 cm"
                   className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
                 />
               </div>
-              <div>
-                <label htmlFor="condition" className="block text-sm font-medium text-ink mb-1.5">
-                  Stand
-                </label>
-                <select
-                  id="condition"
-                  className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
-                >
-                  <option value="">Velg stand</option>
-                  <option>Som ny</option>
-                  <option>Pent brukt</option>
-                  <option>Godt brukt</option>
-                  <option>Mye brukt</option>
-                </select>
-              </div>
-            </div>
+            )}
 
-            <div>
-              <label htmlFor="wear" className="block text-sm font-medium text-ink mb-1.5">
-                Nøyaktig stand
-              </label>
-              <textarea
-                id="wear"
-                rows={2}
-                placeholder="Beskriv slitasje, reparasjoner..."
-                className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest resize-none"
-              />
-            </div>
+            {!isISO && (
+              <div>
+                <label htmlFor="wear" className="block text-sm font-medium text-ink mb-1.5">Nøyaktig stand</label>
+                <textarea
+                  id="wear"
+                  rows={2}
+                  value={form.wearDescription}
+                  onChange={(e) => setForm({ ...form, wearDescription: e.target.value })}
+                  placeholder="Beskriv slitasje, reparasjoner, brukshistorikk..."
+                  className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest resize-none"
+                />
+              </div>
+            )}
 
             <div>
               <label htmlFor="price" className="block text-sm font-medium text-ink mb-1.5">
-                Pris (NOK)
+                {isISO ? "Budsjett / maks pris (valgfritt)" : isBulk ? "Pris per enhet (NOK)" : "Pris (NOK)"}
               </label>
               <div className="relative">
                 <input
                   id="price"
                   type="number"
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
                   placeholder="0"
                   className="w-full rounded-lg border border-border px-4 py-3 text-2xl font-bold text-forest placeholder:text-ink-light/40 focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
                 />
@@ -177,115 +389,172 @@ export default function SellPage() {
 
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-ink mb-1.5">
-                Beskrivelse
+                {isISO ? "Mer info om hva du søker" : "Beskrivelse"}
               </label>
               <textarea
                 id="description"
                 rows={4}
-                placeholder="Beskriv utstyret, historikk, hva som er inkludert..."
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder={
+                  isISO
+                    ? "Gi mer detaljer — størrelse, merke, formål, fleksibilitet på pris..."
+                    : "Beskriv utstyret, historikk, hva som er inkludert..."
+                }
                 className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest resize-none"
               />
             </div>
           </div>
         </section>
 
-        {/* Step 4: Shipping & Club */}
+        {/* Step 5: Club, profile & shipping */}
         <section>
           <div className="flex items-center gap-3 mb-5">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-white text-sm font-bold">
-              4
+              {step5Num}
             </span>
-            <h2 className="font-display text-xl font-semibold text-ink">
-              Frakt & klubb
-            </h2>
+            <h2 className="font-display text-xl font-semibold text-ink">Klubb & profil</h2>
           </div>
 
           <div className="space-y-5">
-            {/* Club selection */}
-            {/* TODO MVP: Replace with Supabase query for user's club memberships */}
+            {/* Club selector */}
             <div className="bg-white rounded-xl p-6">
-              <label className="block text-sm font-medium text-ink mb-3">
-                Velg din klubb
-              </label>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-forest-light border-2 border-forest">
-                <div className="h-10 w-10 rounded-full bg-forest flex items-center justify-center text-white text-xs font-bold">
-                  BSK
-                </div>
-                <div className="flex-1">
-                  <span className="font-medium text-ink text-sm">Bergen Skiklubb</span>
-                  <p className="text-xs text-ink-light">
-                    Annonsen vises på din klubbside og i søket
-                  </p>
-                </div>
-                <svg className="h-5 w-5 text-forest" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-
-            {/* Shipping options */}
-            {/* TODO MVP: Replace with Bring Shipping Guide API integration
-                See: https://developer.bring.com/api/shipping-guide_2/ */}
-            <div className="bg-white rounded-xl p-6">
-              <label className="block text-sm font-medium text-ink mb-3">
-                Fraktvalg
-              </label>
-              <div className="space-y-3">
-                {[
-                  {
-                    id: "bring",
-                    label: "Bring pakke",
-                    desc: "Fra 99 kr — label genereres automatisk",
-                  },
-                  {
-                    id: "local",
-                    label: "Hentes lokalt i Bergen",
-                    desc: "Kjøper og selger avtaler sted",
-                  },
-                  {
-                    id: "both",
-                    label: "Begge deler",
-                    desc: "La kjøper velge frakt eller henting",
-                  },
-                ].map((option) => (
-                  <label
-                    key={option.id}
-                    className={`flex items-start gap-3 p-4 rounded-lg cursor-pointer transition-colors duration-[120ms] ${
-                      selectedShipping === option.id
+              <label className="block text-sm font-medium text-ink mb-3">Velg din klubb</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {clubs.map((club) => (
+                  <button
+                    key={club.id}
+                    onClick={() => setSelectedClubId(club.id)}
+                    className={`flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-[120ms] ${
+                      selectedClubId === club.id
                         ? "bg-forest-light border-2 border-forest"
                         : "bg-cream border-2 border-transparent hover:border-border"
                     }`}
                   >
-                    <input
-                      type="radio"
-                      name="shipping"
-                      value={option.id}
-                      checked={selectedShipping === option.id}
-                      onChange={(e) => setSelectedShipping(e.target.value)}
-                      className="mt-0.5 accent-forest"
-                    />
-                    <div>
-                      <span className="text-sm font-medium text-ink">{option.label}</span>
-                      <p className="text-xs text-ink-light mt-0.5">{option.desc}</p>
+                    <div
+                      className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                      style={{ backgroundColor: club.color }}
+                    >
+                      {club.initials}
                     </div>
-                  </label>
+                    <span className="font-medium text-ink text-sm">{club.name}</span>
+                  </button>
                 ))}
               </div>
             </div>
+
+            {/* Profile selector */}
+            {selectedClubId && (
+              <div className="bg-white rounded-xl p-6">
+                <label className="block text-sm font-medium text-ink mb-3">Velg din profil</label>
+                {profiles.length === 0 ? (
+                  <p className="text-sm text-ink-light">Ingen profiler funnet for denne klubben ennå.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {profiles.map((profile) => (
+                      <button
+                        key={profile.id}
+                        onClick={() => setSelectedProfileId(profile.id)}
+                        className={`flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-[120ms] ${
+                          selectedProfileId === profile.id
+                            ? "bg-forest-light border-2 border-forest"
+                            : "bg-cream border-2 border-transparent hover:border-border"
+                        }`}
+                      >
+                        <div className="h-8 w-8 rounded-full bg-forest-light flex items-center justify-center text-forest text-xs font-bold flex-shrink-0">
+                          {profile.avatar}
+                        </div>
+                        <div>
+                          <span className="font-medium text-ink text-sm block">{profile.name}</span>
+                          <span className="text-xs text-ink-light">{profile.total_sold} solgt</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Members only toggle */}
+            <div className="bg-white rounded-xl p-6">
+              <label className="flex items-center gap-4 cursor-pointer">
+                <div className="relative flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={form.membersOnly}
+                    onChange={(e) => setForm({ ...form, membersOnly: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-10 h-6 bg-border rounded-full peer peer-checked:bg-forest transition-colors duration-[120ms]" />
+                  <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-[120ms] peer-checked:translate-x-4" />
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-ink">Kun for klubbmedlemmer</span>
+                  <p className="text-xs text-ink-light mt-0.5">Annonsen vises bare for godkjente medlemmer av valgt klubb</p>
+                </div>
+              </label>
+            </div>
+
+            {/* Shipping — skip for ISO */}
+            {!isISO && (
+              <div className="bg-white rounded-xl p-6">
+                <label className="block text-sm font-medium text-ink mb-3">Fraktvalg</label>
+                <div className="space-y-3">
+                  {[
+                    { id: "bring", label: "Bring pakke", desc: "Fra 99 kr — label genereres automatisk" },
+                    { id: "local", label: "Hentes lokalt", desc: "Kjøper og selger avtaler sted" },
+                    { id: "both", label: "Begge deler", desc: "La kjøper velge frakt eller henting" },
+                  ].map((option) => (
+                    <label
+                      key={option.id}
+                      className={`flex items-start gap-3 p-4 rounded-lg cursor-pointer transition-colors duration-[120ms] ${
+                        selectedShipping === option.id
+                          ? "bg-forest-light border-2 border-forest"
+                          : "bg-cream border-2 border-transparent hover:border-border"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="shipping"
+                        value={option.id}
+                        checked={selectedShipping === option.id}
+                        onChange={(e) => setSelectedShipping(e.target.value)}
+                        className="mt-0.5 accent-forest"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-ink">{option.label}</span>
+                        <p className="text-xs text-ink-light mt-0.5">{option.desc}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
         {/* Submit */}
         <div className="pt-2 pb-8">
-          {/* TODO MVP: Replace with form submission to Supabase:
-              await supabase.from('listings').insert({...formData, club_id, user_id})
-              Then redirect to the new listing page */}
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
           <button
             type="button"
-            onClick={() => showComingSoon("Publisering av annonser")}
-            className="w-full rounded-lg bg-amber py-4 text-base font-bold text-white hover:brightness-92 transition-colors duration-[120ms]"
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="w-full rounded-lg bg-amber py-4 text-base font-bold text-white hover:brightness-92 transition-all duration-[120ms] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Publiser annonse
+            {submitting
+              ? uploading
+                ? "Laster opp bilder..."
+                : "Publiserer..."
+              : isISO
+              ? "Publiser ettersøk"
+              : isBulk
+              ? "Publiser massesalg"
+              : "Publiser annonse"}
           </button>
           <p className="mt-4 text-center text-xs text-ink-light">
             Trygg betaling via Vipps • Bring frakt integrert • Klubbbeskyttelse

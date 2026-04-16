@@ -12,6 +12,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          author_name: string | null
+          body: string
+          club_id: number
+          created_at: string
+          id: number
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          author_name?: string | null
+          body: string
+          club_id: number
+          created_at?: string
+          id?: never
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string | null
+          body?: string
+          club_id?: number
+          created_at?: string
+          id?: never
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           emoji: string
@@ -41,10 +82,12 @@ export type Database = {
           description: string | null
           id: number
           initials: string
+          is_membership_gated: boolean
           logo_url: string | null
           members: number
           name: string
           rating: number
+          secondary_color: string | null
           slug: string
           total_sold: number
           updated_at: string
@@ -56,10 +99,12 @@ export type Database = {
           description?: string | null
           id?: never
           initials: string
+          is_membership_gated?: boolean
           logo_url?: string | null
           members?: number
           name: string
           rating?: number
+          secondary_color?: string | null
           slug: string
           total_sold?: number
           updated_at?: string
@@ -71,10 +116,12 @@ export type Database = {
           description?: string | null
           id?: never
           initials?: string
+          is_membership_gated?: boolean
           logo_url?: string | null
           members?: number
           name?: string
           rating?: number
+          secondary_color?: string | null
           slug?: string
           total_sold?: number
           updated_at?: string
@@ -91,8 +138,12 @@ export type Database = {
           id: number
           images: string[]
           is_sold: boolean
+          listing_type: string
+          members_only: boolean
           price: number
+          quantity: number | null
           seller_id: number
+          size_range: string | null
           specs: Json | null
           title: string
           updated_at: string
@@ -107,8 +158,12 @@ export type Database = {
           id?: never
           images?: string[]
           is_sold?: boolean
+          listing_type?: string
+          members_only?: boolean
           price: number
+          quantity?: number | null
           seller_id: number
+          size_range?: string | null
           specs?: Json | null
           title: string
           updated_at?: string
@@ -123,8 +178,12 @@ export type Database = {
           id?: never
           images?: string[]
           is_sold?: boolean
+          listing_type?: string
+          members_only?: boolean
           price?: number
+          quantity?: number | null
           seller_id?: number
+          size_range?: string | null
           specs?: Json | null
           title?: string
           updated_at?: string
@@ -141,6 +200,51 @@ export type Database = {
           {
             foreignKeyName: "listings_seller_id_fkey"
             columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memberships: {
+        Row: {
+          club_id: number
+          created_at: string
+          id: number
+          message: string | null
+          profile_id: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          club_id: number
+          created_at?: string
+          id?: never
+          message?: string | null
+          profile_id: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: number
+          created_at?: string
+          id?: never
+          message?: string | null
+          profile_id?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memberships_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -231,6 +335,47 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_searches: {
+        Row: {
+          category: string | null
+          club_id: number | null
+          created_at: string
+          id: number
+          keywords: string | null
+          max_price: number | null
+          notify_email: string
+          size_hint: string | null
+        }
+        Insert: {
+          category?: string | null
+          club_id?: number | null
+          created_at?: string
+          id?: never
+          keywords?: string | null
+          max_price?: number | null
+          notify_email: string
+          size_hint?: string | null
+        }
+        Update: {
+          category?: string | null
+          club_id?: number | null
+          created_at?: string
+          id?: never
+          keywords?: string | null
+          max_price?: number | null
+          notify_email?: string
+          size_hint?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_searches_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
         ]

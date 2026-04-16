@@ -7,6 +7,9 @@ export type Profile = Tables<"profiles">;
 export type Listing = Tables<"listings">;
 export type Category = Tables<"categories">;
 export type Review = Tables<"reviews">;
+export type Announcement = Tables<"announcements">;
+export type Membership = Tables<"memberships">;
+export type SavedSearch = Tables<"saved_searches">;
 
 // Listing with joined club and seller data
 export type ListingWithRelations = Listing & {
@@ -237,6 +240,126 @@ export async function searchAll(query: string): Promise<SearchResults> {
     categories: categoriesRes.data ?? [],
   };
 }
+
+// ─── Announcements ──────────────────────────────────────
+
+export async function getAnnouncementsByClub(clubId: number): Promise<Announcement[]> {
+  const { data, error } = await supabase
+    .from("announcements")
+    .select("*")
+    .eq("club_id", clubId)
+    .order("created_at", { ascending: false })
+    .limit(10);
+  if (error) throw error;
+  return data;
+}
+
+export async function createAnnouncement(
+  clubId: number,
+  title: string,
+  body: string,
+  type: string,
+  authorName?: string
+): Promise<Announcement> {
+  const { data, error } = await supabase
+    .from("announcements")
+    .insert({ club_id: clubId, title, body, type, author_name: authorName ?? null })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteAnnouncement(id: number): Promise<void> {
+  const { error } = await supabase.from("announcements").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ─── Memberships ─────────────────────────────────────────
+
+export type MembershipWithProfile = Membership & { profiles: Profile };
+
+export async function getMembershipsByClub(
+  clubId: number,
+  status?: string
+): Promise<MembershipWithProfile[]> {
+  let q = supabase
+    .from("memberships")
+    .select("*, profiles(*)")
+    .eq("club_id", clubId)
+    .order("created_at", { ascending: false });
+  if (status) q = q.eq("status", status);
+  const { data, error } = await q;
+  if (error) throw error;
+  return data as MembershipWithProfile[];
+}
+
+export async function createMembershipRequest(
+  clubId: number,
+  name: string,
+  message?: string
+): Promise<void> {
+  // Find or create a profile by name for MVP (no real auth yet)
+  let { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .ilike("name", name.trim())
+    .limit(1)
+    .single();
+
+  if (!profile) {
+    const slug = name.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    const { data: newProfile, error } = await supabase
+      .from("profiles")
+      .insert({ name: name.trim(), slug: `${slug}-${Date.now()}`, avatar: name.trim().slice(0, 2).toUpperCase() })
+      .select("id")
+      .single();
+    if (error) throw error;
+    profile = newProfile;
+  }
+
+  const { error } = await supabase.from("memberships").upsert({
+    club_id: clubId,
+    profile_id: profile.id,
+    message: message ?? null,
+    status: "pending",
+  });
+  if (error) throw error;
+}
+
+export async function updateMembershipStatus(
+  id: number,
+  status: "approved" | "rejected"
+): Promise<void> {
+  const { error } = await supabase
+    .from("memberships")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+// ─── Saved Searches ──────────────────────────────────────
+
+export async function createSavedSearch(params: {
+  notifyEmail: string;
+  keywords?: string;
+  category?: string;
+  maxPrice?: number;
+  sizeHint?: string;
+  clubId?: number;
+}): Promise<void> {
+  const { error } = await supabase.from("saved_searches").insert({
+    notify_email: params.notifyEmail,
+    keywords: params.keywords ?? null,
+    category: params.category ?? null,
+    max_price: params.maxPrice ?? null,
+    size_hint: params.sizeHint ?? null,
+    club_id: params.clubId ?? null,
+  });
+  if (error) throw error;
+}
+
+// ─── Search ─────────────────────────────────────────────
 
 export async function searchListings(
   query?: string,

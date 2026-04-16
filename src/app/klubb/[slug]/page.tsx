@@ -4,9 +4,11 @@ import {
   getClubBySlug,
   getListingsByClub,
   getProfilesByClub,
+  getAnnouncementsByClub,
 } from "@/lib/queries";
 import { ClubListings } from "@/components/ClubListings";
-import { ComingSoonButton } from "@/components/ComingSoonButton";
+import { ClubAnnouncements } from "@/components/ClubAnnouncements";
+import { JoinClubButton } from "@/components/JoinClubButton";
 import Link from "next/link";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -34,7 +36,6 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
-
 export default async function ClubPage({ params }: Props) {
   const { slug } = await params;
 
@@ -50,23 +51,30 @@ export default async function ClubPage({ params }: Props) {
     );
   }
 
-  const [listings, sellers] = await Promise.all([
+  const [listings, sellers, announcements] = await Promise.all([
     getListingsByClub(club.id),
     getProfilesByClub(club.id),
+    getAnnouncementsByClub(club.id),
   ]);
 
   return (
     <>
       {/* Club banner */}
-      <section
-        className="relative"
-        style={{ backgroundColor: club.color }}
-      >
+      <section className="relative" style={{ backgroundColor: club.color }}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-white text-2xl font-bold font-display border-2 border-white/30">
-              {club.initials}
-            </div>
+            {club.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={club.logo_url}
+                alt={club.name}
+                className="h-20 w-20 rounded-full object-cover border-2 border-white/30"
+              />
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-white text-2xl font-bold font-display border-2 border-white/30">
+                {club.initials}
+              </div>
+            )}
             <div className="flex-1">
               <h1 className="font-display text-3xl sm:text-4xl font-bold text-white">
                 {club.name}
@@ -74,24 +82,34 @@ export default async function ClubPage({ params }: Props) {
               <p className="mt-1 text-white/70 text-sm">
                 {club.members.toLocaleString("nb-NO")} medlemmer • {club.active_listings} aktive annonser
               </p>
+              {club.description && (
+                <p className="mt-2 text-white/80 text-sm max-w-xl">{club.description}</p>
+              )}
             </div>
             <div className="flex gap-3">
-              <ComingSoonButton
-                feature="Deling"
-                className="rounded-lg bg-white/20 px-5 py-2 text-sm font-medium text-white hover:bg-white/30 transition-colors duration-[120ms] backdrop-blur-sm"
-              >
-                Del klubbside
-              </ComingSoonButton>
-              <ComingSoonButton
-                feature="Klubbmedlemskap"
-                className="rounded-lg bg-amber px-5 py-2 text-sm font-semibold text-white hover:brightness-92 transition-colors duration-[120ms]"
-              >
-                Bli med i klubben
-              </ComingSoonButton>
+              <JoinClubButton
+                clubId={club.id}
+                clubName={club.name}
+                isMembershipGated={club.is_membership_gated}
+              />
             </div>
           </div>
         </div>
       </section>
+
+      {/* Membership gating notice */}
+      {club.is_membership_gated && (
+        <div className="bg-amber-light border-b border-amber/30">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
+            <svg className="h-4 w-4 text-amber flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+            </svg>
+            <p className="text-xs font-medium text-ink-mid">
+              Noen annonser i denne klubben er kun synlig for godkjente medlemmer.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Club stats */}
       <section className="bg-white border-b border-border">
@@ -116,7 +134,13 @@ export default async function ClubPage({ params }: Props) {
       </section>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Interactive listings with search, filter, sort */}
+
+        {/* Announcements */}
+        {announcements.length > 0 && (
+          <ClubAnnouncements clubId={club.id} isAdmin={false} />
+        )}
+
+        {/* Interactive listings */}
         <ClubListings clubId={club.id} clubName={club.name} initialListings={listings} />
 
         {/* Byttemarked banner */}
@@ -126,8 +150,7 @@ export default async function ClubPage({ params }: Props) {
           </h3>
           <p className="mt-1 text-lg text-white/90 font-display">15. november 2026</p>
           <p className="mt-3 text-white/80 text-sm max-w-lg mx-auto">
-            Alle varer fra klubbens medlemmer • Legg ut din annonse nå og nå
-            hundrevis av klubbmedlemmer.
+            Alle varer fra klubbens medlemmer • Legg ut din annonse nå og nå hundrevis av klubbmedlemmer.
           </p>
           <Link
             href="/selg"
@@ -149,7 +172,7 @@ export default async function ClubPage({ params }: Props) {
                 href={`/profil/${seller.slug}`}
                 className="flex flex-col items-center gap-2 group"
               >
-                <div className="h-14 w-14 rounded-full bg-forest-light flex items-center justify-center text-forest font-bold text-sm group-hover:bg-forest-light transition-colors duration-[120ms]">
+                <div className="h-14 w-14 rounded-full bg-forest-light flex items-center justify-center text-forest font-bold text-sm group-hover:bg-forest group-hover:text-white transition-colors duration-[120ms]">
                   {seller.avatar}
                 </div>
                 <span className="text-sm font-medium text-ink group-hover:text-forest transition-colors duration-[120ms]">{seller.name}</span>
@@ -159,19 +182,17 @@ export default async function ClubPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Club admin CTA */}
+        {/* Admin CTA */}
         <div className="mt-12 rounded-xl bg-white border border-border p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h4 className="font-display text-lg font-semibold text-ink">
-              Er du lagleder?
-            </h4>
+            <h4 className="font-display text-lg font-semibold text-ink">Er du lagleder?</h4>
             <p className="text-sm text-ink-light mt-1">
-              Administrer klubbsiden, inviter medlemmer og se statistikk.
+              Administrer klubbsiden, inviter medlemmer, post oppslag og tilpass utseendet.
             </p>
           </div>
           <Link
             href={`/klubb/${slug}/admin`}
-            className="text-sm font-semibold text-forest hover:text-forest-light transition-colors duration-[120ms] whitespace-nowrap"
+            className="text-sm font-semibold text-forest hover:text-forest-mid transition-colors duration-[120ms] whitespace-nowrap"
           >
             Administrer klubbsiden →
           </Link>
