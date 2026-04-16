@@ -911,7 +911,7 @@ export default function ClubAdminPage({
                   <div className="flex items-center gap-3">
                     <input
                       type="color"
-                      value={branding.secondary_color || "#e8843a"}
+                      value={branding.secondary_color || branding.color}
                       onChange={(e) => setBranding({ ...branding, secondary_color: e.target.value })}
                       className="h-10 w-14 rounded-lg border border-border cursor-pointer"
                     />
@@ -919,11 +919,21 @@ export default function ClubAdminPage({
                       type="text"
                       value={branding.secondary_color}
                       onChange={(e) => setBranding({ ...branding, secondary_color: e.target.value })}
-                      placeholder="#e8843a"
+                      placeholder="Tomt = samme som primærfarge"
                       className="flex-1 rounded-lg border border-border px-3 py-2 text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
                     />
+                    {branding.secondary_color && (
+                      <button
+                        type="button"
+                        onClick={() => setBranding({ ...branding, secondary_color: "" })}
+                        className="text-xs text-ink-light hover:text-red-500 transition-colors flex-shrink-0"
+                        title="Fjern sekundærfarge"
+                      >
+                        Nullstill
+                      </button>
+                    )}
                   </div>
-                  <p className="text-xs text-ink-light mt-1.5">Brukes på knapper og accenter</p>
+                  <p className="text-xs text-ink-light mt-1.5">Brukes på knapper og accenter. La stå tomt for å bruke primærfargen.</p>
                 </div>
               </div>
 
@@ -943,7 +953,7 @@ export default function ClubAdminPage({
                   <button
                     type="button"
                     className="ml-auto rounded-lg px-4 py-1.5 text-xs font-semibold text-white"
-                    style={{ backgroundColor: branding.secondary_color || "#e8843a" }}
+                    style={{ backgroundColor: branding.secondary_color || branding.color }}
                   >
                     Bli med
                   </button>
