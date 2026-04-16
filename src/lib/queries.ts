@@ -250,7 +250,7 @@ export async function getAnnouncementsByClub(clubId: number): Promise<Announceme
     .eq("club_id", clubId)
     .order("created_at", { ascending: false })
     .limit(10);
-  if (error) throw error;
+  if (error) return []; // table may not exist yet — fail gracefully
   return data;
 }
 
