@@ -28,11 +28,13 @@ function InviteLinkSection({
 }) {
   const [copied, setCopied] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
 
-  const inviteUrl =
-    club.invite_token && typeof window !== "undefined"
-      ? `${window.location.origin}/join/${club.invite_token}`
-      : null;
+  useEffect(() => {
+    if (club.invite_token) {
+      setInviteUrl(`${window.location.origin}/join/${club.invite_token}`);
+    }
+  }, [club.invite_token]);
 
   async function handleCopy() {
     if (!inviteUrl) return;
