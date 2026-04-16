@@ -114,7 +114,8 @@ export default function ClubAdminPage({
     e.preventDefault();
     if (!club) return;
     setBrandingSaving(true);
-    await supabase.from("clubs").update({
+    setBrandingSaved(false);
+    const { error } = await supabase.from("clubs").update({
       color: branding.color,
       secondary_color: branding.secondary_color || null,
       description: branding.description || null,
@@ -123,6 +124,11 @@ export default function ClubAdminPage({
       updated_at: new Date().toISOString(),
     }).eq("id", club.id);
     setBrandingSaving(false);
+    if (error) {
+      alert(`Kunne ikke lagre: ${error.message}`);
+      return;
+    }
+    setClub({ ...club, ...branding, secondary_color: branding.secondary_color || null, description: branding.description || null, logo_url: branding.logo_url || null });
     setBrandingSaved(true);
     setTimeout(() => setBrandingSaved(false), 3000);
   }
