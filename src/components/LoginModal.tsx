@@ -61,12 +61,16 @@ export function LoginModal({ onClose }: Props) {
           {/* Vipps button — disabled */}
           <button
             disabled
-            className="w-full flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold cursor-not-allowed opacity-60"
+            className="w-full flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold cursor-not-allowed opacity-60 overflow-hidden"
             style={{ backgroundColor: "#FF5B24", color: "#fff" }}
           >
-            <span>Fortsett med</span>
+            <span className="flex-shrink-0">Fortsett med</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/Vipps-Logo.png" alt="Vipps" className="h-[1.15em] w-auto flex-shrink-0 brightness-0 invert" />
+            <img
+              src="/Vipps-Logo.png"
+              alt="Vipps"
+              className="w-16 flex-shrink-0 brightness-0 invert"
+            />
           </button>
 
           {/* Google button — disabled */}
