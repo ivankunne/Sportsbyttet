@@ -67,34 +67,18 @@ export default function RegistreringerPage() {
     setUpdating(true);
     const reg = registrations.find((r) => r.id === id);
 
-    // When approving, create the club row if it doesn't exist yet
     if (status === "approved" && reg) {
-      const slug =
-        reg.club_name
-          .toLowerCase()
-          .replace(/æ/g, "ae").replace(/ø/g, "o").replace(/å/g, "a")
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "") +
-        "-" +
-        Math.random().toString(36).slice(2, 6);
-
-      const initials = reg.club_name
-        .split(/\s+/)
-        .map((w) => w[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
-
-      await supabase.from("clubs").insert({
-        name: reg.club_name,
-        slug,
-        initials,
-        color: reg.primary_color || "#1a3c2e",
-        secondary_color: reg.secondary_color || null,
-        description: reg.description || null,
-        logo_url: reg.logo_url || null,
-        invite_token: crypto.randomUUID(),
+      const res = await fetch("/api/approve-club", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reg),
       });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(`Kunne ikke opprette klubb: ${data.error}`);
+        setUpdating(false);
+        return;
+      }
     }
 
     await supabase.from("club_registrations").update({ status }).eq("id", id);
