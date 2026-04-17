@@ -562,15 +562,11 @@ export function ListingDetail({ id }: { id: string }) {
                   href={`https://qr.vipps.no/28/2/01/031/${listing.profiles.vipps_phone}?v=1`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#FF5B24] py-3.5 font-semibold text-white hover:brightness-110 active:brightness-95 transition-all duration-[120ms]"
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-[#FF5B24] py-3.5 px-6 hover:brightness-110 active:brightness-95 transition-all duration-[120ms]"
                 >
-                  {/* Vipps logo mark */}
-                  <svg className="h-6 w-6 flex-shrink-0" viewBox="0 0 32 32" fill="none">
-                    <rect width="32" height="32" rx="8" fill="white" fillOpacity="0.25"/>
-                    <path d="M8 17c2 3 4.5 5 8 5 2.5 0 4.5-1.5 6-4l2.5-5" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="22.5" cy="10" r="2.2" fill="white"/>
-                  </svg>
-                  <span className="text-base tracking-wide">Betal med <span className="font-black">vipps</span></span>
+                  <span className="text-sm font-semibold text-white">Betal med</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/Vipps white.png" alt="Vipps" className="h-5 w-auto" />
                 </a>
               ) : (
                 <div className="rounded-xl bg-amber-light border border-amber/20 p-4 text-center">
