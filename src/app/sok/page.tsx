@@ -230,7 +230,11 @@ function SearchPage() {
       {/* Landing state (no query yet) */}
       {!hasQuery && !loading && (
         <div className="text-center py-16">
-          <div className="text-5xl mb-4">⛷️</div>
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-cream">
+            <svg className="h-7 w-7 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
+          </div>
           <h2 className="font-display text-2xl font-bold text-ink">
             Hva leter du etter?
           </h2>

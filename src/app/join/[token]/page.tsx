@@ -102,7 +102,11 @@ export default function JoinViaInvitePage({
   if (notFound || !club) {
     return (
       <div className="mx-auto max-w-sm px-4 py-20 text-center">
-        <p className="text-4xl mb-4">🔗</p>
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-cream">
+          <svg className="h-7 w-7 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+          </svg>
+        </div>
         <h1 className="font-display text-2xl font-bold text-ink">Ugyldig invitasjonslenke</h1>
         <p className="mt-2 text-sm text-ink-light">
           Denne lenken er ikke lenger aktiv. Kontakt klubben for en ny invitasjon.

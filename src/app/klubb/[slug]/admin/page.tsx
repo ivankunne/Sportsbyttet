@@ -87,7 +87,14 @@ function InviteLinkSection({
                 onClick={handleCopy}
                 className="flex-shrink-0 px-4 py-2.5 rounded-lg bg-forest text-sm font-semibold text-white hover:bg-forest-mid transition-colors duration-[120ms]"
               >
-                {copied ? "Kopiert ✓" : "Kopier"}
+                {copied ? (
+                  <span className="flex items-center gap-1.5">
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    Kopiert
+                  </span>
+                ) : "Kopier"}
               </button>
             </div>
             <p className="text-xs text-ink-light">
@@ -269,7 +276,12 @@ function CsvImportSection({
         )}
 
         {importDone && (
-          <p className="text-sm font-medium text-forest">Import fullført ✓</p>
+          <p className="flex items-center gap-1.5 text-sm font-medium text-forest">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+            Import fullført
+          </p>
         )}
 
         <p className="text-xs text-ink-light border-t border-border pt-4">

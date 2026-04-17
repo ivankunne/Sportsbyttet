@@ -7,6 +7,26 @@ import { supabase } from "@/lib/supabase";
 
 type ListingType = "regular" | "iso" | "bulk";
 
+const LISTING_TYPE_ICONS: Record<ListingType, React.ReactNode> = {
+  regular: (
+    <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+    </svg>
+  ),
+  iso: (
+    <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 7.5v6M7.5 10.5h6" />
+    </svg>
+  ),
+  bulk: (
+    <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3" />
+    </svg>
+  ),
+};
+
 export default function SellPage() {
   const router = useRouter();
   const [listingType, setListingType] = useState<ListingType>("regular");
@@ -185,9 +205,9 @@ export default function SellPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {([
-              { id: "regular" as const, label: "Selg utstyr", emoji: "🏷️", desc: "Selg ett enkelt utstyr" },
-              { id: "iso" as const, label: "Ettersøk (ISO)", emoji: "🔍", desc: "Søker etter bestemt utstyr" },
-              { id: "bulk" as const, label: "Massesalg", emoji: "📦", desc: "Selg lag-utstyr i bulk" },
+              { id: "regular" as const, label: "Selg utstyr", desc: "Selg ett enkelt utstyr" },
+              { id: "iso" as const, label: "Ettersøk (ISO)", desc: "Søker etter bestemt utstyr" },
+              { id: "bulk" as const, label: "Massesalg", desc: "Selg lag-utstyr i bulk" },
             ]).map((type) => (
               <button
                 key={type.id}
@@ -198,7 +218,7 @@ export default function SellPage() {
                     : "bg-white text-ink hover:bg-border/60"
                 }`}
               >
-                <span className="text-2xl">{type.emoji}</span>
+                <span className={listingType === type.id ? "text-white" : "text-ink-light"}>{LISTING_TYPE_ICONS[type.id]}</span>
                 <span className="text-sm font-semibold">{type.label}</span>
                 <span className={`text-xs leading-snug ${listingType === type.id ? "text-white/70" : "text-ink-light"}`}>
                   {type.desc}

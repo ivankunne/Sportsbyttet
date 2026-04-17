@@ -44,7 +44,7 @@ export function JoinClubButton({ clubId, clubName, isMembershipGated, memberEmai
   if (submitted) {
     return (
       <div className="rounded-lg bg-white/20 px-5 py-2 text-sm font-medium text-white backdrop-blur-sm">
-        {resolveStatus() === "approved" ? "Velkommen! ✓" : "Søknad sendt ✓"}
+        {resolveStatus() === "approved" ? "Velkommen!" : "Søknad sendt"}
       </div>
     );
   }

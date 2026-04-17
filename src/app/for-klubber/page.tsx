@@ -92,9 +92,9 @@ export default function ForKlubberPage() {
                   "Foreldre som ikke vet hvem de handler med",
                 ].map((pain) => (
                   <li key={pain} className="flex items-start gap-3 text-ink-mid">
-                    <span className="text-lg leading-tight mt-0.5 flex-shrink-0">
-                      ❌
-                    </span>
+                    <svg className="h-5 w-5 text-ink-light flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                     <span className="text-base leading-snug">{pain}</span>
                   </li>
                 ))}
@@ -114,9 +114,9 @@ export default function ForKlubberPage() {
                   "Kjøper vet hvem selgeren er — samme klubb",
                 ].map((sol) => (
                   <li key={sol} className="flex items-start gap-3 text-white/90">
-                    <span className="text-amber font-bold text-lg leading-tight mt-0.5 flex-shrink-0">
-                      ✓
-                    </span>
+                    <svg className="h-5 w-5 text-amber flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
                     <span className="text-base leading-snug">{sol}</span>
                   </li>
                 ))}

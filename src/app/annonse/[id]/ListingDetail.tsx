@@ -271,7 +271,12 @@ export function ListingDetail({ id }: { id: string }) {
                         </button>
                       </div>
                       {contactSent ? (
-                        <p className="text-sm text-forest text-center py-3">Melding sendt! Selgeren vil kontakte deg. ✓</p>
+                        <div className="flex flex-col items-center gap-1.5 py-3">
+                          <svg className="h-5 w-5 text-forest" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                          </svg>
+                          <p className="text-sm text-forest text-center">Melding sendt! Selgeren vil kontakte deg.</p>
+                        </div>
                       ) : (
                         <form onSubmit={handleContact} className="space-y-2">
                           <input

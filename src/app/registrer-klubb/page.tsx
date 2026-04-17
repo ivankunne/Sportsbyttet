@@ -263,7 +263,14 @@ export default function RegisterClubPage() {
                       Fjern logo
                     </button>
                   )}
-                  {logoUrl && !logoUploading && <p className="text-xs text-forest">Logo lastet opp ✓</p>}
+                  {logoUrl && !logoUploading && (
+                    <p className="flex items-center gap-1 text-xs text-forest">
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                      Logo lastet opp
+                    </p>
+                  )}
                 </div>
               </div>
               <p className="text-xs text-ink-light mt-2">PNG, JPG eller SVG anbefales.</p>
