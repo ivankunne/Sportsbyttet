@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { ListingWithRelations } from "@/lib/queries";
 import { formatDaysAgo } from "@/lib/queries";
+import { showSuccess, showError } from "@/components/Toaster";
 import { ConditionBadge } from "@/components/ConditionBadge";
 import { CategoryBadge } from "@/components/CategoryBadge";
 import { ListingCard } from "@/components/ListingCard";
@@ -21,6 +22,7 @@ export default function ListingDetailPage({
   const [activeImage, setActiveImage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isSold, setIsSold] = useState(false);
+  const [confirmSold, setConfirmSold] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [contactSent, setContactSent] = useState(false);
   const [contactError, setContactError] = useState("");
@@ -86,9 +88,12 @@ export default function ListingDetailPage({
   }
 
   async function handleMarkSold() {
-    if (!listing || !confirm("Merk denne annonsen som solgt?")) return;
-    await supabase.from("listings").update({ is_sold: true }).eq("id", listing.id);
+    if (!listing) return;
+    const { error } = await supabase.from("listings").update({ is_sold: true }).eq("id", listing.id);
+    if (error) { showError("Kunne ikke merke som solgt. Prøv igjen."); return; }
     setIsSold(true);
+    setConfirmSold(false);
+    showSuccess("Annonsen er merket som solgt!");
   }
 
   async function handleContact(e: { preventDefault(): void }) {
@@ -274,12 +279,32 @@ export default function ListingDetailPage({
                     </div>
                   )}
 
-                  <button
-                    onClick={handleMarkSold}
-                    className="w-full rounded-lg border border-border py-2 text-xs font-medium text-ink-light hover:bg-cream transition-colors duration-[120ms]"
-                  >
-                    Er du selgeren? Merk som solgt
-                  </button>
+                  {!confirmSold ? (
+                    <button
+                      onClick={() => setConfirmSold(true)}
+                      className="w-full rounded-lg border border-border py-2 text-xs font-medium text-ink-light hover:bg-cream transition-colors duration-[120ms]"
+                    >
+                      Er du selgeren? Merk som solgt
+                    </button>
+                  ) : (
+                    <div className="rounded-lg border border-amber/40 bg-amber/5 px-4 py-3 text-xs text-ink-mid">
+                      <p className="font-medium text-ink mb-2 text-center">Merk annonsen som solgt?</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleMarkSold}
+                          className="flex-1 rounded-lg bg-forest py-1.5 text-xs font-semibold text-white hover:bg-forest-mid transition-colors duration-[120ms]"
+                        >
+                          Bekreft
+                        </button>
+                        <button
+                          onClick={() => setConfirmSold(false)}
+                          className="flex-1 rounded-lg border border-border py-1.5 text-xs font-medium text-ink-light hover:bg-cream transition-colors duration-[120ms]"
+                        >
+                          Avbryt
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

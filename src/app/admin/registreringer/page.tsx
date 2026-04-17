@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { contrastColor } from "@/lib/color";
+import { showSuccess, showError } from "@/components/Toaster";
 
 type Registration = {
   id: number;
@@ -76,7 +77,7 @@ export default function RegistreringerPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(`Kunne ikke opprette klubb: ${data.error}`);
+        showError(`Kunne ikke opprette klubb: ${data.error}`);
         setUpdating(false);
         return;
       }
@@ -87,6 +88,8 @@ export default function RegistreringerPage() {
       prev.map((r) => (r.id === id ? { ...r, status } : r))
     );
     if (selected?.id === id) setSelected((prev) => prev ? { ...prev, status } : prev);
+    const labels: Record<string, string> = { approved: "Klubb godkjent og opprettet!", rejected: "Søknad avvist.", pending: "Status satt til venter." };
+    showSuccess(labels[status] ?? "Status oppdatert.");
     setUpdating(false);
   }
 
