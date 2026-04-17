@@ -562,12 +562,11 @@ export default function ClubAdminPage({
       {/* ── Tab: Oversikt ── */}
       {activeTab === "oversikt" && (
         <div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
             {[
               { label: "Aktive annonser", value: activeListings.length.toString() },
               { label: "Totalt solgt", value: soldListings.length.toString() },
               { label: "Medlemmer", value: club.members.toLocaleString("nb-NO") },
-              { label: "Snittkarakter", value: `${club.rating} ⭐` },
             ].map((stat) => (
               <div key={stat.label} className="bg-white rounded-xl p-5 border border-border">
                 <p className="text-xs text-ink-light font-medium uppercase tracking-wider">{stat.label}</p>
@@ -634,15 +633,6 @@ export default function ClubAdminPage({
                 </div>
               </div>
 
-              <div className="bg-amber-light rounded-xl p-6 border border-amber/30">
-                <h3 className="font-display text-base font-semibold text-ink">Oppgrader til Pro</h3>
-                <p className="mt-1 text-sm text-ink-mid">
-                  Avansert statistikk, flere admin-brukere og lavere transaksjonsgebyr.
-                </p>
-                <Link href="/priser" className="mt-3 inline-block text-sm font-semibold text-amber hover:underline">
-                  Se planer →
-                </Link>
-              </div>
             </div>
           </div>
         </div>

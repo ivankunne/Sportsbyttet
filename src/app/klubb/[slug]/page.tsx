@@ -126,11 +126,6 @@ export default async function ClubPage({ params }: Props) {
               <span className="text-xl font-bold font-display text-forest">{club.total_sold}</span>
               <span className="ml-1.5 text-sm text-ink-light">solgte varer</span>
             </div>
-            <div className="w-px h-5 bg-border" />
-            <div>
-              <span className="text-xl font-bold font-display text-forest">{club.rating} ⭐</span>
-              <span className="ml-1.5 text-sm text-ink-light">snittkarakter</span>
-            </div>
           </div>
         </div>
       </section>

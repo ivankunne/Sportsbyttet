@@ -309,9 +309,6 @@ function SearchPage() {
                           {club.active_listings} annonser
                         </p>
                       </div>
-                      <span className="text-xs text-forest font-medium">
-                        {club.rating} ⭐
-                      </span>
                     </Link>
                   ))}
                 </div>
@@ -356,9 +353,6 @@ function SearchPage() {
                           {profile.total_sold} solgt
                         </p>
                       </div>
-                      <span className="text-xs text-forest font-medium">
-                        {profile.rating} ⭐
-                      </span>
                     </Link>
                   ))}
                 </div>

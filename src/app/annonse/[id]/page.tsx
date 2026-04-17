@@ -349,7 +349,7 @@ export default function ListingDetailPage({
                     </span>
                   </div>
                   <p className="text-xs text-ink-light">
-                    Medlem siden {listing.profiles.member_since} • {listing.profiles.rating} ⭐
+                    {listing.profiles.total_sold} solgte varer
                   </p>
                 </div>
               </div>

@@ -64,7 +64,6 @@ export default async function ClubsPage() {
                 <div className="text-ink-light">
                   <span className="font-semibold text-forest">{club.total_sold}</span> solgt
                 </div>
-                <div className="text-ink-light">{club.rating} ⭐</div>
               </div>
 
               <span className="text-sm font-medium text-forest group-hover:text-forest-mid transition-colors duration-[120ms]">

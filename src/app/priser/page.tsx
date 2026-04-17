@@ -23,7 +23,7 @@ export default function PricingPage() {
       </div>
 
       {/* Pricing cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
         {/* Free - Individual */}
         <div className="bg-white rounded-2xl p-7 border border-border">
           <h3 className="font-display text-lg font-semibold text-ink">Selger</h3>
@@ -102,42 +102,6 @@ export default function PricingPage() {
           <p className="mt-2 text-center text-xs text-ink-light">30 dager gratis, ingen binding</p>
         </div>
 
-        {/* Club Pro */}
-        <div className="bg-white rounded-2xl p-7 border border-border">
-          <h3 className="font-display text-lg font-semibold text-ink">Klubb Pro</h3>
-          <p className="text-sm text-ink-light mt-1">For store klubber med mange medlemmer</p>
-          <div className="mt-5 flex items-baseline gap-1">
-            <span className="text-4xl font-bold font-display text-ink">799</span>
-            <span className="text-ink-light">kr/mnd</span>
-          </div>
-          <p className="mt-1 text-xs text-ink-light">4% transaksjonsgebyr ved salg</p>
-
-          <ul className="mt-6 space-y-3">
-            {[
-              "Alt i Klubb-planen",
-              "Avansert statistikk & innsikt",
-              "Flere admin-brukere",
-              "Prioritert support",
-              "Egendefinerte kategorier",
-              "API-tilgang",
-              "Hvitmerking (egen logo i e-poster)",
-            ].map((feature) => (
-              <li key={feature} className="flex items-start gap-2 text-sm text-ink-light">
-                <svg className="h-5 w-5 text-forest flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                </svg>
-                {feature}
-              </li>
-            ))}
-          </ul>
-
-          <Link
-            href="/kontakt"
-            className="mt-8 block w-full rounded-lg border-2 border-forest py-2.5 text-center text-sm font-semibold text-forest hover:bg-forest hover:text-white transition-colors duration-[120ms]"
-          >
-            Kontakt oss
-          </Link>
-        </div>
       </div>
 
       {/* FAQ */}
