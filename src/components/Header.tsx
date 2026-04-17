@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Logo } from "./Logo";
 import { LoginModal } from "./LoginModal";
@@ -24,6 +24,7 @@ type QuickResult = {
 };
 
 export function Header() {
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -302,19 +303,19 @@ export function Header() {
           <nav className="hidden md:flex items-center gap-6 flex-shrink-0">
             <Link
               href="/utforsk"
-              className="text-sm font-medium text-ink-mid hover:text-forest transition-colors duration-[120ms]"
+              className={`text-sm font-medium transition-colors duration-[120ms] ${pathname.startsWith("/utforsk") ? "text-forest font-semibold" : "text-ink-mid hover:text-forest"}`}
             >
               Utforsk
             </Link>
             <Link
               href="/klubber"
-              className="text-sm font-medium text-ink-mid hover:text-forest transition-colors duration-[120ms]"
+              className={`text-sm font-medium transition-colors duration-[120ms] ${pathname.startsWith("/klubber") || pathname.startsWith("/klubb") ? "text-forest font-semibold" : "text-ink-mid hover:text-forest"}`}
             >
               Klubber
             </Link>
             <Link
               href="/selg"
-              className="text-sm font-medium text-ink-mid hover:text-forest transition-colors duration-[120ms]"
+              className={`text-sm font-medium transition-colors duration-[120ms] ${pathname === "/selg" ? "text-forest font-semibold" : "text-ink-mid hover:text-forest"}`}
             >
               Selg
             </Link>
@@ -441,17 +442,20 @@ export function Header() {
                   </svg>
                 ),
               },
-            ].map(({ href, label, icon }) => (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-mid hover:bg-cream hover:text-forest transition-colors duration-[120ms]"
-              >
-                <span className="text-ink-light">{icon}</span>
-                {label}
-              </Link>
-            ))}
+            ].map(({ href, label, icon }) => {
+              const isActive = href === "/selg" ? pathname === href : pathname.startsWith(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMenuOpen(false)}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-[120ms] ${isActive ? "bg-forest-light text-forest font-semibold" : "text-ink-mid hover:bg-cream hover:text-forest"}`}
+                >
+                  <span className={isActive ? "text-forest" : "text-ink-light"}>{icon}</span>
+                  {label}
+                </Link>
+              );
+            })}
           </nav>
           <div className="px-4 pb-4 pt-1 border-t border-border space-y-2">
             <button

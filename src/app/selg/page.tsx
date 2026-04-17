@@ -34,6 +34,12 @@ export default function SellPage() {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const categoryRef = useRef<HTMLElement>(null);
+  const detailsRef = useRef<HTMLElement>(null);
+
+  function scrollTo(ref: React.RefObject<HTMLElement | null>) {
+    setTimeout(() => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+  }
 
   useEffect(() => {
     Promise.all([
@@ -41,7 +47,10 @@ export default function SellPage() {
       supabase.from("clubs").select("*").order("members", { ascending: false }),
     ]).then(([{ data: cats }, { data: clubsData }]) => {
       if (cats) setCategories(cats);
-      if (clubsData) setClubs(clubsData);
+      if (clubsData) {
+        setClubs(clubsData);
+        if (clubsData.length > 0) setSelectedClubId(clubsData[0].id);
+      }
     });
   }, []);
 
@@ -56,7 +65,10 @@ export default function SellPage() {
       .select("*")
       .eq("club_id", selectedClubId)
       .then(({ data }) => {
-        if (data) setProfiles(data);
+        if (data) {
+          setProfiles(data);
+          if (data.length > 0) setSelectedProfileId(data[0].id);
+        }
       });
   }, [selectedClubId]);
 
@@ -179,7 +191,7 @@ export default function SellPage() {
             ]).map((type) => (
               <button
                 key={type.id}
-                onClick={() => setListingType(type.id)}
+                onClick={() => { setListingType(type.id); scrollTo(categoryRef); }}
                 className={`flex flex-col gap-2 rounded-xl p-4 text-left transition-all duration-[120ms] ${
                   listingType === type.id
                     ? "bg-forest text-white ring-2 ring-forest ring-offset-2"
@@ -197,7 +209,7 @@ export default function SellPage() {
         </section>
 
         {/* Step 2: Category */}
-        <section>
+        <section ref={categoryRef}>
           <div className="flex items-center gap-3 mb-5">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-white text-sm font-bold">2</span>
             <h2 className="font-display text-xl font-semibold text-ink">Velg kategori</h2>
@@ -206,7 +218,7 @@ export default function SellPage() {
             {categories.map((cat) => (
               <button
                 key={cat.slug}
-                onClick={() => setSelectedCategory(cat.name)}
+                onClick={() => { setSelectedCategory(cat.name); scrollTo(detailsRef); }}
                 className={`flex items-center gap-3 rounded-xl p-4 text-left transition-all duration-[120ms] ${
                   selectedCategory === cat.name
                     ? "bg-forest text-white ring-2 ring-forest ring-offset-2"
@@ -283,7 +295,7 @@ export default function SellPage() {
         )}
 
         {/* Step 4: Details */}
-        <section>
+        <section ref={detailsRef}>
           <div className="flex items-center gap-3 mb-5">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-white text-sm font-bold">
               {step4Num}
