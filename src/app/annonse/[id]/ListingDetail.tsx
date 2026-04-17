@@ -566,7 +566,7 @@ export function ListingDetail({ id }: { id: string }) {
                 >
                   <span className="text-sm font-semibold text-white">Betal med</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/Vipps white.png" alt="Vipps" className="h-5 w-auto" />
+                  <img src="/vipps-white.png" alt="Vipps" className="h-5 w-auto" />
                 </a>
               ) : (
                 <div className="rounded-xl bg-amber-light border border-amber/20 p-4 text-center">
