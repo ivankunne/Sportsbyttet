@@ -9,8 +9,9 @@ import { ListingCardSkeleton } from "@/components/Skeleton";
 
 const CONDITIONS = [
   { value: "", label: "Alle" },
-  { value: "Ny", label: "Ny" },
+  { value: "Som ny", label: "Som ny" },
   { value: "Pent brukt", label: "Pent brukt" },
+  { value: "Godt brukt", label: "Godt brukt" },
   { value: "Brukt", label: "Brukt" },
 ];
 

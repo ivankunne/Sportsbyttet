@@ -322,7 +322,7 @@ export default function SellPage() {
                     <option>Som ny</option>
                     <option>Pent brukt</option>
                     <option>Godt brukt</option>
-                    <option>Mye brukt</option>
+                    <option>Brukt</option>
                   </select>
                 </div>
                 {isBulk && (
