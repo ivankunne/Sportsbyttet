@@ -9,6 +9,7 @@ import {
 } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import { ListingCard } from "@/components/ListingCard";
+import { ProfileMessageButton } from "@/components/ProfileMessageButton";
 
 export const revalidate = 60;
 export const dynamicParams = true;
@@ -89,12 +90,7 @@ export default async function ProfilePage({ params }: Props) {
             </div>
           </div>
 
-          <Link
-            href={`/kontakt`}
-            className="rounded-lg border-2 border-forest px-6 py-2 text-sm font-semibold text-forest hover:bg-forest hover:text-white transition-colors duration-[120ms]"
-          >
-            Send melding
-          </Link>
+          <ProfileMessageButton sellerName={seller.name} />
         </div>
 
         {seller.clubs && (
