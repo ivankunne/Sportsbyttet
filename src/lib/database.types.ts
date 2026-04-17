@@ -331,6 +331,7 @@ export type Database = {
           slug: string
           total_sold: number
           updated_at: string
+          vipps_phone: string | null
         }
         Insert: {
           auth_user_id?: string | null
@@ -345,6 +346,7 @@ export type Database = {
           slug: string
           total_sold?: number
           updated_at?: string
+          vipps_phone?: string | null
         }
         Update: {
           auth_user_id?: string | null
@@ -359,6 +361,7 @@ export type Database = {
           slug?: string
           total_sold?: number
           updated_at?: string
+          vipps_phone?: string | null
         }
         Relationships: [
           {

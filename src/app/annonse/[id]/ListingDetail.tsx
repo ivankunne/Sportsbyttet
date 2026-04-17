@@ -557,10 +557,24 @@ export function ListingDetail({ id }: { id: string }) {
                 </ol>
               </div>
 
-              <div className="rounded-xl bg-amber-light border border-amber/20 p-4 text-center">
-                <p className="text-sm font-semibold text-ink">Betaling via Vipps lanseres snart</p>
-                <p className="text-xs text-ink-mid mt-1">I mellomtiden — ta kontakt med selger for å avtale kjøp direkte.</p>
-              </div>
+              {listing.profiles?.vipps_phone ? (
+                <a
+                  href={`https://qr.vipps.no/28/2/01/031/${listing.profiles.vipps_phone}?v=1`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF5B24] py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity duration-[120ms]"
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.5 7.5l-5 7a.75.75 0 01-1.22-.04l-2.5-3.5a.75.75 0 111.22-.88l1.87 2.62 4.41-6.17a.75.75 0 011.22.87z" />
+                  </svg>
+                  Betal med Vipps
+                </a>
+              ) : (
+                <div className="rounded-xl bg-amber-light border border-amber/20 p-4 text-center">
+                  <p className="text-sm font-semibold text-ink">Betaling via Vipps lanseres snart</p>
+                  <p className="text-xs text-ink-mid mt-1">I mellomtiden — ta kontakt med selger for å avtale kjøp direkte.</p>
+                </div>
+              )}
 
               <button
                 onClick={() => { setBuyModalOpen(false); setContactOpen(true); }}

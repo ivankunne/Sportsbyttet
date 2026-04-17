@@ -54,6 +54,7 @@ type Profile = {
   club_id: number | null;
   total_sold: number;
   created_at: string;
+  vipps_phone: string | null;
   clubs: { name: string; color: string; initials: string } | null;
 };
 
@@ -864,7 +865,8 @@ function BrukereTab() {
     bio: string;
     club_id: number | null;
     total_sold: number;
-  }>({ name: "", bio: "", club_id: null, total_sold: 0 });
+    vipps_phone: string;
+  }>({ name: "", bio: "", club_id: null, total_sold: 0, vipps_phone: "" });
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -893,6 +895,7 @@ function BrukereTab() {
       bio: profile.bio,
       club_id: profile.club_id,
       total_sold: profile.total_sold,
+      vipps_phone: profile.vipps_phone ?? "",
     });
     setConfirmDelete(false);
   }
@@ -1076,6 +1079,16 @@ function BrukereTab() {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, total_sold: parseInt(e.target.value) || 0 }))
                 }
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-ink-mid mb-1">Vipps-nummer</label>
+              <input
+                type="tel"
+                value={form.vipps_phone}
+                onChange={(e) => setForm((f) => ({ ...f, vipps_phone: e.target.value }))}
+                placeholder="4712345678"
                 className={inputCls}
               />
             </div>
