@@ -443,6 +443,66 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          id: string
+          listing_id: number
+          seller_id: number
+          buyer_name: string
+          buyer_email: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          listing_id: number
+          seller_id: number
+          buyer_name: string
+          buyer_email: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          listing_id?: number
+          seller_id?: number
+          buyer_name?: string
+          buyer_email?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          id: string
+          conversation_id: string
+          is_from_seller: boolean
+          type: string
+          content: string
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          conversation_id: string
+          is_from_seller?: boolean
+          type?: string
+          content: string
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          conversation_id?: string
+          is_from_seller?: boolean
+          type?: string
+          content?: string
+          metadata?: Json | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       saved_searches: {
         Row: {
           category: string | null

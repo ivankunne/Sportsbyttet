@@ -10,6 +10,7 @@ import { showSuccess, showError } from "@/components/Toaster";
 import { ConditionBadge } from "@/components/ConditionBadge";
 import { CategoryBadge } from "@/components/CategoryBadge";
 import { ListingCard } from "@/components/ListingCard";
+import { ListingChat } from "@/components/ListingChat";
 
 export function ListingDetail({ id }: { id: string }) {
   const [listing, setListing] = useState<ListingWithRelations | null>(null);
@@ -19,11 +20,7 @@ export function ListingDetail({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [isSold, setIsSold] = useState(false);
   const [confirmSold, setConfirmSold] = useState(false);
-  const [contactOpen, setContactOpen] = useState(false);
-  const [contactSent, setContactSent] = useState(false);
-  const [contactError, setContactError] = useState("");
-  const [contact, setContact] = useState({ name: "", email: "", message: "" });
-  const [buyModalOpen, setBuyModalOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
@@ -92,30 +89,6 @@ export function ListingDetail({ id }: { id: string }) {
     setIsSold(true);
     setConfirmSold(false);
     showSuccess("Annonsen er merket som solgt!");
-  }
-
-  async function handleContact(e: { preventDefault(): void }) {
-    e.preventDefault();
-    if (!listing) return;
-    if (!contact.name.trim() || !contact.email.trim() || !contact.message.trim()) {
-      setContactError("Fyll inn alle feltene");
-      return;
-    }
-    setContactError("");
-    const res = await fetch("/api/inquiry", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        listing_id: listing.id,
-        buyer_name: contact.name.trim(),
-        buyer_email: contact.email.trim(),
-        message: contact.message.trim(),
-        listing_title: listing.title,
-        seller_name: listing.profiles?.name ?? "",
-      }),
-    });
-    if (!res.ok) { setContactError("Noe gikk galt. Prøv igjen."); return; }
-    setContactSent(true);
   }
 
   const images = listing.images.length > 0 ? listing.images : ["https://picsum.photos/seed/default/800/600"];
@@ -243,77 +216,14 @@ export function ListingDetail({ id }: { id: string }) {
               ) : (
                 <div className="space-y-3 mb-6">
                   <button
-                    onClick={() => setBuyModalOpen(true)}
-                    className="w-full rounded-lg bg-amber py-3.5 text-sm font-bold text-white hover:brightness-95 transition-all duration-[120ms]"
+                    onClick={() => setChatOpen(true)}
+                    className="w-full rounded-lg bg-forest py-3.5 text-sm font-bold text-white hover:bg-forest-mid transition-colors duration-[120ms] flex items-center justify-center gap-2"
                   >
-                    Se kjøpsinformasjon
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                    </svg>
+                    Send melding til selger
                   </button>
-
-                  {/* Contact seller */}
-                  {!contactOpen ? (
-                    <button
-                      onClick={() => setContactOpen(true)}
-                      className="w-full rounded-lg border-2 border-forest py-3 text-sm font-semibold text-forest hover:bg-forest hover:text-white transition-colors duration-[120ms]"
-                    >
-                      Send melding til selger
-                    </button>
-                  ) : (
-                    <div className="rounded-xl border border-border p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-semibold text-ink">Send melding</h3>
-                        <button
-                          onClick={() => { setContactOpen(false); setContactSent(false); setContactError(""); }}
-                          className="text-ink-light hover:text-ink transition-colors"
-                        >
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                      {contactSent ? (
-                        <div className="flex flex-col items-center gap-1.5 py-3">
-                          <svg className="h-5 w-5 text-forest" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                          </svg>
-                          <p className="text-sm text-forest text-center">Melding sendt! Selgeren vil kontakte deg.</p>
-                        </div>
-                      ) : (
-                        <form onSubmit={handleContact} className="space-y-2">
-                          <input
-                            type="text"
-                            required
-                            value={contact.name}
-                            onChange={(e) => setContact({ ...contact, name: e.target.value })}
-                            placeholder="Ditt navn"
-                            className="w-full rounded-lg border border-border px-3 py-2 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
-                          />
-                          <input
-                            type="email"
-                            required
-                            value={contact.email}
-                            onChange={(e) => setContact({ ...contact, email: e.target.value })}
-                            placeholder="Din e-post"
-                            className="w-full rounded-lg border border-border px-3 py-2 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
-                          />
-                          <textarea
-                            required
-                            rows={3}
-                            value={contact.message}
-                            onChange={(e) => setContact({ ...contact, message: e.target.value })}
-                            placeholder="Din melding til selger..."
-                            className="w-full rounded-lg border border-border px-3 py-2 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest resize-none"
-                          />
-                          {contactError && <p className="text-xs text-red-600">{contactError}</p>}
-                          <button
-                            type="submit"
-                            className="w-full rounded-lg bg-forest py-2.5 text-sm font-semibold text-white hover:bg-forest-mid transition-colors duration-[120ms]"
-                          >
-                            Send melding
-                          </button>
-                        </form>
-                      )}
-                    </div>
-                  )}
 
                   {!confirmSold ? (
                     <button
@@ -516,74 +426,13 @@ export function ListingDetail({ id }: { id: string }) {
         </div>
       )}
 
-      {/* Vipps payment modal */}
-      {buyModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setBuyModalOpen(false)} />
-          <div className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-            <div className="bg-forest px-6 py-5 flex items-center justify-between">
-              <div>
-                <p className="text-white/70 text-xs font-medium">Kjøp</p>
-                <h2 className="font-display text-lg font-bold text-white leading-tight">{listing.title}</h2>
-              </div>
-              <button onClick={() => setBuyModalOpen(false)} className="text-white/60 hover:text-white transition-colors ml-4 flex-shrink-0">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="p-6 space-y-5">
-              <div className="rounded-xl bg-cream p-4 flex items-center justify-between">
-                <span className="text-sm text-ink-light">Pris</span>
-                <span className="font-display text-xl font-bold text-forest">{listing.price.toLocaleString("nb-NO")} kr</span>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-ink-light mb-3">Slik fungerer det</p>
-                <ol className="space-y-3">
-                  {[
-                    { n: "1", text: "Kontakt selger og avtal kjøp direkte" },
-                    { n: "2", text: "Betal selger direkte med Vipps" },
-                    { n: "3", text: "Selger sender varen med Bring" },
-                  ].map((step) => (
-                    <li key={step.n} className="flex items-start gap-3">
-                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-forest text-white text-xs font-bold">
-                        {step.n}
-                      </span>
-                      <span className="text-sm text-ink-mid leading-snug pt-0.5">{step.text}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-
-              {listing.profiles?.vipps_phone ? (
-                <a
-                  href={`https://qr.vipps.no/28/2/01/031/${listing.profiles.vipps_phone}?v=1`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-[#FF5B24] py-3.5 px-6 hover:brightness-110 active:brightness-95 transition-all duration-[120ms]"
-                >
-                  <span className="text-sm font-semibold text-white">Betal med</span>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/vipps-white.png" alt="Vipps" className="h-5 w-auto" />
-                </a>
-              ) : (
-                <div className="rounded-xl bg-amber-light border border-amber/20 p-4 text-center">
-                  <p className="text-sm font-semibold text-ink">Betaling via Vipps lanseres snart</p>
-                  <p className="text-xs text-ink-mid mt-1">I mellomtiden — ta kontakt med selger for å avtale kjøp direkte.</p>
-                </div>
-              )}
-
-              <button
-                onClick={() => { setBuyModalOpen(false); setContactOpen(true); }}
-                className="w-full rounded-lg bg-forest py-3 text-sm font-semibold text-white hover:bg-forest-mid transition-colors duration-[120ms]"
-              >
-                Send melding til selger
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Chat */}
+      {listing && (
+        <ListingChat
+          listing={listing}
+          open={chatOpen}
+          onClose={() => setChatOpen(false)}
+        />
       )}
     </div>
   );

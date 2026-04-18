@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { contrastColor } from "@/lib/color";
 import { showSuccess, showError } from "@/components/Toaster";
@@ -88,7 +88,7 @@ type Stats = {
   inquiries: number;
 };
 
-type Tab = "registreringer" | "klubber" | "brukere" | "annonser" | "foresporsler";
+type Tab = "registreringer" | "klubber" | "brukere" | "annonser" | "foresporsler" | "meldinger";
 
 const STATUS_LABELS: Record<string, { label: string; dot: string }> = {
   pending: { label: "Venter", dot: "bg-amber" },
@@ -1580,6 +1580,222 @@ function ForesporslerTab() {
 }
 
 // ---------------------------------------------------------------------------
+// Tab: Meldinger
+// ---------------------------------------------------------------------------
+
+type Conversation = {
+  id: string;
+  listing_id: number;
+  seller_id: number;
+  buyer_name: string;
+  buyer_email: string;
+  created_at: string;
+  listings: { title: string; price: number } | null;
+  profiles: { name: string; avatar: string } | null;
+};
+
+type Message = {
+  id: string;
+  conversation_id: string;
+  is_from_seller: boolean;
+  type: string;
+  content: string;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+};
+
+function MeldingerTab() {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [reply, setReply] = useState("");
+  const [sending, setSending] = useState(false);
+  const [search, setSearch] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const fetchConversations = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("conversations")
+      .select("*, listings(title, price), profiles(name, avatar)")
+      .order("created_at", { ascending: false });
+    setConversations((data ?? []) as unknown as Conversation[]);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchConversations(); }, [fetchConversations]);
+
+  async function openConversation(conv: Conversation) {
+    setSelected(conv);
+    const { data } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", conv.id)
+      .order("created_at", { ascending: true });
+    setMessages((data ?? []) as Message[]);
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 60);
+  }
+
+  // Realtime for selected conversation
+  useEffect(() => {
+    if (!selected) return;
+    const channel = supabase
+      .channel(`admin-messages:${selected.id}`)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "messages",
+        filter: `conversation_id=eq.${selected.id}`,
+      }, (payload) => {
+        setMessages((prev) => {
+          if (prev.find((m) => m.id === (payload.new as Message).id)) return prev;
+          return [...prev, payload.new as Message];
+        });
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 60);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [selected]);
+
+  async function sendReply() {
+    if (!selected || !reply.trim()) return;
+    setSending(true);
+    try {
+      const { data: msg } = await supabase
+        .from("messages")
+        .insert({
+          conversation_id: selected.id,
+          is_from_seller: true,
+          type: "text",
+          content: reply.trim(),
+        })
+        .select()
+        .single();
+      if (msg) {
+        setMessages((prev) => {
+          if (prev.find((m) => m.id === (msg as Message).id)) return prev;
+          return [...prev, msg as Message];
+        });
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 60);
+      }
+      setReply("");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  const filteredConversations = search.trim()
+    ? conversations.filter((c) =>
+        [c.buyer_name, c.buyer_email, c.listings?.title ?? ""]
+          .join(" ").toLowerCase().includes(search.toLowerCase())
+      )
+    : conversations;
+
+  if (loading) return <Spinner />;
+
+  return (
+    <div className="flex gap-4 h-[600px]">
+      {/* Conversation list */}
+      <div className="w-72 flex-shrink-0 flex flex-col gap-3">
+        <div className="relative">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Søk..."
+            className="w-full rounded-lg border border-border bg-white pl-9 pr-4 py-2 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
+          />
+        </div>
+        <div className="bg-white rounded-xl border border-border overflow-y-auto flex-1 divide-y divide-border">
+          {filteredConversations.length === 0 && (
+            <div className="p-6 text-center text-sm text-ink-light">Ingen samtaler.</div>
+          )}
+          {filteredConversations.map((conv) => (
+            <button
+              key={conv.id}
+              onClick={() => openConversation(conv)}
+              className={`w-full px-4 py-3 text-left transition-colors duration-[120ms] ${selected?.id === conv.id ? "bg-forest-light" : "hover:bg-cream"}`}
+            >
+              <p className="text-sm font-medium text-ink truncate">{conv.buyer_name}</p>
+              <p className="text-xs text-ink-light truncate">{conv.listings?.title ?? "Ukjent annonse"}</p>
+              <p className="text-xs text-ink-light mt-0.5">{new Date(conv.created_at).toLocaleDateString("nb-NO")}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Chat pane */}
+      {selected ? (
+        <div className="flex-1 bg-white rounded-xl border border-border flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="px-4 py-3 border-b border-border flex items-center gap-3 flex-shrink-0">
+            <div className="h-8 w-8 rounded-full bg-forest-light flex items-center justify-center text-forest text-sm font-bold">
+              {selected.profiles?.avatar ?? "?"}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-ink">{selected.buyer_name}</p>
+              <p className="text-xs text-ink-light">{selected.listings?.title} · {selected.listings?.price?.toLocaleString("nb-NO")} kr</p>
+            </div>
+            <a href={`mailto:${selected.buyer_email}`} className="ml-auto text-xs text-forest hover:underline">{selected.buyer_email}</a>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+            {messages.map((msg) => (
+              <div key={msg.id} className={`flex ${msg.is_from_seller ? "justify-end" : "justify-start"}`}>
+                <div className={`rounded-2xl px-4 py-2.5 max-w-[75%] text-sm leading-relaxed ${
+                  msg.is_from_seller
+                    ? "bg-forest text-white rounded-br-sm"
+                    : "bg-cream text-ink rounded-bl-sm"
+                }`}>
+                  {msg.type === "vipps_request" && (
+                    <span className="block text-[11px] font-bold uppercase tracking-wide opacity-70 mb-1">Vipps-forespørsel</span>
+                  )}
+                  {msg.type === "bring_request" && (
+                    <span className="block text-[11px] font-bold uppercase tracking-wide opacity-70 mb-1">Bring frakt</span>
+                  )}
+                  <span className="whitespace-pre-line">{msg.content}</span>
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Reply input */}
+          <div className="px-4 py-3 border-t border-border flex gap-2 flex-shrink-0">
+            <input
+              type="text"
+              value={reply}
+              onChange={(e) => setReply(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendReply(); } }}
+              placeholder={`Svar som ${selected.profiles?.name ?? "selger"}...`}
+              className="flex-1 rounded-full border border-border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest bg-cream"
+            />
+            <button
+              onClick={sendReply}
+              disabled={sending || !reply.trim()}
+              className="h-9 w-9 flex-shrink-0 rounded-full bg-forest flex items-center justify-center text-white hover:bg-forest-mid transition-colors disabled:opacity-40"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.269 20.876L5.999 12zm0 0h7.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 bg-white rounded-xl border border-border flex items-center justify-center">
+          <p className="text-sm text-ink-light">Velg en samtale for å se meldinger.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
 
@@ -1687,6 +1903,7 @@ export default function RegistreringerPage() {
     { id: "brukere", label: "Brukere" },
     { id: "annonser", label: "Annonser" },
     { id: "foresporsler", label: "Forespørsler" },
+    { id: "meldinger", label: "Meldinger" },
   ];
 
   return (
@@ -1750,6 +1967,7 @@ export default function RegistreringerPage() {
         {activeTab === "brukere" && loadedTabs.has("brukere") && <BrukereTab />}
         {activeTab === "annonser" && loadedTabs.has("annonser") && <AnnonsertTab />}
         {activeTab === "foresporsler" && loadedTabs.has("foresporsler") && <ForesporslerTab />}
+        {activeTab === "meldinger" && loadedTabs.has("meldinger") && <MeldingerTab />}
       </div>
     </div>
   );
