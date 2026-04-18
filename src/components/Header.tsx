@@ -32,9 +32,65 @@ export function Header() {
   const [results, setResults] = useState<QuickResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(-1);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [pendingSelg, setPendingSelg] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Track auth state
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("auth_user_id", session.user.id)
+          .single();
+        setUserName(profile?.name ?? session.user.email?.split("@")[0] ?? "Meg");
+      }
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("auth_user_id", session.user.id)
+          .single();
+        setUserName(profile?.name ?? session.user.email?.split("@")[0] ?? "Meg");
+      } else {
+        setUserName(null);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Close user menu on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  function handleSelgClick(e: React.MouseEvent) {
+    if (!userName) {
+      e.preventDefault();
+      setPendingSelg(true);
+      setLoginOpen(true);
+    }
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setUserMenuOpen(false);
+    router.push("/");
+  }
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -315,16 +371,48 @@ export function Header() {
             </Link>
             <Link
               href="/selg"
+              onClick={handleSelgClick}
               className={`text-sm font-medium transition-colors duration-[120ms] ${pathname === "/selg" ? "text-forest font-semibold" : "text-ink-mid hover:text-forest"}`}
             >
               Selg
             </Link>
-            <button
-              onClick={() => setLoginOpen(true)}
-              className="text-sm font-medium text-ink-mid hover:text-forest transition-colors duration-[120ms]"
-            >
-              Logg inn
-            </button>
+
+            {userName ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                  className="flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-ink hover:bg-cream transition-colors duration-[120ms]"
+                >
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-forest text-white text-xs font-bold">
+                    {userName.slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="max-w-[100px] truncate">{userName}</span>
+                  <svg className="h-3.5 w-3.5 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-44 rounded-xl bg-white border border-border shadow-lg overflow-hidden z-50">
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-2 px-4 py-3 text-sm text-ink-mid hover:bg-cream transition-colors duration-[120ms]"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l3 3m0 0l-3 3m3-3H3" />
+                      </svg>
+                      Logg ut
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => setLoginOpen(true)}
+                className="text-sm font-medium text-ink-mid hover:text-forest transition-colors duration-[120ms]"
+              >
+                Logg inn
+              </button>
+            )}
             <Link
               href="/registrer-klubb"
               className="rounded-lg bg-forest px-5 py-2 text-sm font-medium text-white hover:bg-forest-mid transition-colors duration-[120ms]"
@@ -407,7 +495,17 @@ export function Header() {
       )}
 
       {/* Login modal */}
-      {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
+      {loginOpen && (
+        <LoginModal
+          onClose={() => { setLoginOpen(false); setPendingSelg(false); }}
+          onSuccess={() => {
+            if (pendingSelg) {
+              setPendingSelg(false);
+              router.push("/selg");
+            }
+          }}
+        />
+      )}
 
       {/* Mobile menu */}
       {menuOpen && (
@@ -436,19 +534,20 @@ export function Header() {
               {
                 href: "/selg",
                 label: "Selg utstyr",
+                onClick: handleSelgClick,
                 icon: (
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                   </svg>
                 ),
               },
-            ].map(({ href, label, icon }) => {
+            ].map(({ href, label, icon, onClick }) => {
               const isActive = href === "/selg" ? pathname === href : pathname.startsWith(href);
               return (
                 <Link
                   key={href}
                   href={href}
-                  onClick={() => setMenuOpen(false)}
+                  onClick={(e) => { setMenuOpen(false); onClick?.(e); }}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-[120ms] ${isActive ? "bg-forest-light text-forest font-semibold" : "text-ink-mid hover:bg-cream hover:text-forest"}`}
                 >
                   <span className={isActive ? "text-forest" : "text-ink-light"}>{icon}</span>
@@ -458,15 +557,27 @@ export function Header() {
             })}
           </nav>
           <div className="px-4 pb-4 pt-1 border-t border-border space-y-2">
-            <button
-              onClick={() => { setMenuOpen(false); setLoginOpen(true); }}
-              className="flex items-center justify-center gap-2 w-full rounded-lg border border-border px-5 py-3 text-sm font-semibold text-ink-mid hover:bg-cream transition-colors duration-[120ms]"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-              </svg>
-              Logg inn
-            </button>
+            {userName ? (
+              <button
+                onClick={() => { setMenuOpen(false); handleLogout(); }}
+                className="flex items-center justify-center gap-2 w-full rounded-lg border border-border px-5 py-3 text-sm font-semibold text-ink-mid hover:bg-cream transition-colors duration-[120ms]"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l3 3m0 0l-3 3m3-3H3" />
+                </svg>
+                Logg ut ({userName})
+              </button>
+            ) : (
+              <button
+                onClick={() => { setMenuOpen(false); setLoginOpen(true); }}
+                className="flex items-center justify-center gap-2 w-full rounded-lg border border-border px-5 py-3 text-sm font-semibold text-ink-mid hover:bg-cream transition-colors duration-[120ms]"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                </svg>
+                Logg inn
+              </button>
+            )}
             <Link
               href="/registrer-klubb"
               className="flex items-center justify-center gap-2 w-full rounded-lg bg-forest px-5 py-3 text-sm font-semibold text-white hover:bg-forest-mid transition-colors duration-[120ms]"

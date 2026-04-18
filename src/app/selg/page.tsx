@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import type { Category, Club, Profile } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 
+type AuthPhase = "checking" | "auth" | "form";
+type AuthMode = "login" | "signup";
+
 type ListingType = "regular" | "iso" | "bulk";
 
 const LISTING_TYPE_ICONS: Record<ListingType, React.ReactNode> = {
@@ -29,6 +32,12 @@ const LISTING_TYPE_ICONS: Record<ListingType, React.ReactNode> = {
 
 export default function SellPage() {
   const router = useRouter();
+  const [authPhase, setAuthPhase] = useState<AuthPhase>("checking");
+  const [authMode, setAuthMode] = useState<AuthMode>("login");
+  const [authForm, setAuthForm] = useState({ email: "", password: "", name: "" });
+  const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+
   const [listingType, setListingType] = useState<ListingType>("regular");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedShipping, setSelectedShipping] = useState("bring");
@@ -56,12 +65,81 @@ export default function SellPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const categoryRef = useRef<HTMLElement>(null);
   const detailsRef = useRef<HTMLElement>(null);
+  // Holds the profile ID to pre-select once club profiles load
+  const prefilledProfileIdRef = useRef<number | null>(null);
 
   function scrollTo(ref: React.RefObject<HTMLElement | null>) {
     setTimeout(() => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
   }
 
+  // Check auth on mount
   useEffect(() => {
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setAuthPhase("auth");
+        return;
+      }
+      await prefillFromSession(session.user.id);
+    }
+    checkAuth();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function prefillFromSession(authUserId: string) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, club_id")
+      .eq("auth_user_id", authUserId)
+      .single();
+
+    if (profile?.club_id) {
+      prefilledProfileIdRef.current = profile.id;
+      setSelectedClubId(profile.club_id);
+    }
+    setAuthPhase("form");
+  }
+
+  async function handleAuth() {
+    setAuthError("");
+    setAuthLoading(true);
+    try {
+      let userId: string;
+      if (authMode === "login") {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: authForm.email.trim(),
+          password: authForm.password,
+        });
+        if (error) throw error;
+        userId = data.user.id;
+      } else {
+        if (!authForm.name.trim()) throw new Error("Skriv inn ditt navn");
+        const { data, error } = await supabase.auth.signUp({
+          email: authForm.email.trim(),
+          password: authForm.password,
+        });
+        if (error) throw error;
+        if (!data.user) throw new Error("Registrering feilet");
+        userId = data.user.id;
+        const slug =
+          authForm.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") +
+          "-" +
+          Date.now().toString(36);
+        await supabase.from("profiles").insert({
+          auth_user_id: userId,
+          name: authForm.name.trim(),
+          slug,
+        });
+      }
+      await prefillFromSession(userId);
+    } catch (e: unknown) {
+      setAuthError(e instanceof Error ? e.message : "Noe gikk galt");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (authPhase !== "form") return;
     Promise.all([
       supabase.from("categories").select("*").order("id"),
       supabase.from("clubs").select("*").order("members", { ascending: false }),
@@ -69,10 +147,11 @@ export default function SellPage() {
       if (cats) setCategories(cats);
       if (clubsData) {
         setClubs(clubsData);
-        if (clubsData.length > 0) setSelectedClubId(clubsData[0].id);
+        // Only set default club if not already pre-filled from auth
+        if (!selectedClubId && clubsData.length > 0) setSelectedClubId(clubsData[0].id);
       }
     });
-  }, []);
+  }, [authPhase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!selectedClubId) {
@@ -87,7 +166,13 @@ export default function SellPage() {
       .then(({ data }) => {
         if (data) {
           setProfiles(data);
-          if (data.length > 0) setSelectedProfileId(data[0].id);
+          const prefilled = prefilledProfileIdRef.current;
+          if (prefilled && data.find((p) => p.id === prefilled)) {
+            setSelectedProfileId(prefilled);
+            prefilledProfileIdRef.current = null;
+          } else if (data.length > 0) {
+            setSelectedProfileId(data[0].id);
+          }
         }
       });
   }, [selectedClubId]);
@@ -182,6 +267,113 @@ export default function SellPage() {
   const step4Num = isISO ? "3" : "4";
   const step5Num = isISO ? "4" : "5";
 
+  // ── Auth gate ──────────────────────────────────────────
+  if (authPhase === "checking") {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-forest border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (authPhase === "auth") {
+    return (
+      <div className="mx-auto max-w-sm px-4 py-16">
+        <div className="text-center mb-8">
+          <h1 className="font-display text-2xl font-bold text-ink">
+            {authMode === "login" ? "Logg inn for å selge" : "Opprett konto"}
+          </h1>
+          <p className="mt-2 text-sm text-ink-light">
+            {authMode === "login"
+              ? "Du må være innlogget for å legge ut annonser."
+              : "Registrer deg gratis — det tar under ett minutt."}
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {authMode === "signup" && (
+            <div>
+              <label className="block text-xs font-medium text-ink mb-1.5">Fullt navn</label>
+              <input
+                type="text"
+                value={authForm.name}
+                onChange={(e) => setAuthForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Ola Nordmann"
+                className="w-full rounded-lg border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
+              />
+            </div>
+          )}
+          <div>
+            <label className="block text-xs font-medium text-ink mb-1.5">E-post</label>
+            <input
+              type="email"
+              value={authForm.email}
+              onChange={(e) => setAuthForm((f) => ({ ...f, email: e.target.value }))}
+              onKeyDown={(e) => e.key === "Enter" && handleAuth()}
+              placeholder="deg@epost.no"
+              className="w-full rounded-lg border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-ink mb-1.5">Passord</label>
+            <input
+              type="password"
+              value={authForm.password}
+              onChange={(e) => setAuthForm((f) => ({ ...f, password: e.target.value }))}
+              onKeyDown={(e) => e.key === "Enter" && handleAuth()}
+              placeholder="••••••••"
+              className="w-full rounded-lg border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
+            />
+          </div>
+        </div>
+
+        {authError && <p className="mt-2 text-xs text-red-500">{authError}</p>}
+
+        <button
+          onClick={handleAuth}
+          disabled={
+            authLoading ||
+            !authForm.email.trim() ||
+            !authForm.password ||
+            (authMode === "signup" && !authForm.name.trim())
+          }
+          className="mt-5 w-full rounded-lg bg-forest py-3 text-sm font-semibold text-white hover:bg-forest-mid transition-colors duration-[120ms] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {authLoading
+            ? "Laster..."
+            : authMode === "login"
+            ? "Logg inn"
+            : "Opprett konto"}
+        </button>
+
+        <p className="mt-4 text-center text-sm text-ink-light">
+          {authMode === "login" ? (
+            <>
+              Har du ikke konto?{" "}
+              <button
+                onClick={() => { setAuthMode("signup"); setAuthError(""); }}
+                className="font-semibold text-forest hover:underline"
+              >
+                Registrer deg
+              </button>
+            </>
+          ) : (
+            <>
+              Har du allerede konto?{" "}
+              <button
+                onClick={() => { setAuthMode("login"); setAuthError(""); }}
+                className="font-semibold text-forest hover:underline"
+              >
+                Logg inn
+              </button>
+            </>
+          )}
+        </p>
+      </div>
+    );
+  }
+
+  // ── Main form ───────────────────────────────────────────
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-8 sm:py-12">
       <div className="text-center mb-10">

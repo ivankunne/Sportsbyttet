@@ -1,16 +1,21 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Logo } from "./Logo";
+import { supabase } from "@/lib/supabase";
 
 type Props = {
   onClose: () => void;
+  onSuccess?: () => void;
 };
 
-export function LoginModal({ onClose }: Props) {
+export function LoginModal({ onClose, onSuccess }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [form, setForm] = useState({ email: "", password: "", name: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Close on Escape
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -23,23 +28,54 @@ export function LoginModal({ onClose }: Props) {
     };
   }, [onClose]);
 
+  async function handleSubmit() {
+    setError("");
+    setLoading(true);
+    try {
+      if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: form.email.trim(),
+          password: form.password,
+        });
+        if (error) throw error;
+      } else {
+        if (!form.name.trim()) throw new Error("Skriv inn ditt navn");
+        const { data, error } = await supabase.auth.signUp({
+          email: form.email.trim(),
+          password: form.password,
+        });
+        if (error) throw error;
+        if (data.user) {
+          const slug =
+            form.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") +
+            "-" +
+            Date.now().toString(36);
+          await supabase.from("profiles").insert({
+            auth_user_id: data.user.id,
+            name: form.name.trim(),
+            slug,
+          });
+        }
+      }
+      onSuccess?.();
+      onClose();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Noe gikk galt");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div
       ref={overlayRef}
-      onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
+      onClick={(e) => {
+        if (e.target === overlayRef.current) onClose();
+      }}
       className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 backdrop-blur-sm px-4"
     >
       <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
-
-        {/* Coming soon banner */}
-        <div className="bg-amber/10 border-b border-amber/20 px-5 py-2.5 flex items-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-amber flex-shrink-0" />
-          <p className="text-xs font-medium text-amber">
-            Brukerkontoer lanseres snart — følg med!
-          </p>
-        </div>
-
-        {/* Close button */}
+        {/* Close */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 h-7 w-7 flex items-center justify-center rounded-full text-ink-light hover:bg-cream hover:text-ink transition-colors duration-[120ms]"
@@ -51,102 +87,97 @@ export function LoginModal({ onClose }: Props) {
         </button>
 
         <div className="px-6 pt-6 pb-8">
-          {/* Logo + heading */}
           <div className="text-center mb-6">
             <Logo variant="light" className="text-xl justify-center mb-3" />
-            <h2 className="font-display text-xl font-bold text-ink">Logg inn på Sportsbyttet</h2>
-            <p className="mt-1 text-sm text-ink-light">Kjøp og selg brukt sportsutstyr i din klubb</p>
+            <h2 className="font-display text-xl font-bold text-ink">
+              {mode === "login" ? "Logg inn på Sportsbyttet" : "Opprett konto"}
+            </h2>
+            <p className="mt-1 text-sm text-ink-light">
+              Kjøp og selg brukt sportsutstyr i din klubb
+            </p>
           </div>
 
-          {/* Vipps button — disabled */}
-          <button
-            disabled
-            className="w-full flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold cursor-not-allowed opacity-60 overflow-hidden"
-            style={{ backgroundColor: "#FF5B24", color: "#fff" }}
-          >
-            <span className="flex-shrink-0">Fortsett med</span>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/Vipps-Logo.png"
-              alt="Vipps"
-              className="h-7 w-auto flex-shrink-0 brightness-0 invert"
-            />
-          </button>
-
-          {/* Google button — disabled */}
-          <button
-            disabled
-            className="w-full flex items-center justify-center gap-3 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-ink-mid cursor-not-allowed opacity-60 mt-2"
-          >
-            <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-            </svg>
-            Fortsett med Google
-          </button>
-
-          <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-xs text-ink-light">eller</span>
-            <div className="flex-1 h-px bg-border" />
-          </div>
-
-          {/* Email + password — disabled */}
           <div className="space-y-3">
+            {mode === "signup" && (
+              <div>
+                <label className="block text-xs font-medium text-ink mb-1.5">
+                  Fullt navn
+                </label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="Ola Nordmann"
+                  className="w-full rounded-lg border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
+                />
+              </div>
+            )}
             <div>
-              <label className="block text-xs font-medium text-ink-mid mb-1.5">E-post</label>
+              <label className="block text-xs font-medium text-ink mb-1.5">E-post</label>
               <input
                 type="email"
-                disabled
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                 placeholder="deg@epost.no"
-                className="w-full rounded-lg border border-border bg-cream px-4 py-2.5 text-sm text-ink-mid placeholder:text-ink-light/60 cursor-not-allowed"
+                className="w-full rounded-lg border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-mid mb-1.5">Passord</label>
+              <label className="block text-xs font-medium text-ink mb-1.5">Passord</label>
               <input
                 type="password"
-                disabled
+                value={form.password}
+                onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                 placeholder="••••••••"
-                className="w-full rounded-lg border border-border bg-cream px-4 py-2.5 text-sm text-ink-mid placeholder:text-ink-light/60 cursor-not-allowed"
+                className="w-full rounded-lg border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
               />
             </div>
           </div>
 
-          {/* Submit — disabled with coming soon */}
-          <div className="mt-4 relative">
-            <button
-              disabled
-              className="w-full rounded-lg bg-forest py-2.5 text-sm font-semibold text-white opacity-40 cursor-not-allowed"
-            >
-              Logg inn
-            </button>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="rounded-full bg-amber px-3 py-0.5 text-[11px] font-bold text-white shadow">
-                Kommer snart
-              </span>
-            </div>
-          </div>
+          {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
 
-          {/* Divider */}
-          <div className="mt-5 pt-5 border-t border-border text-center">
-            <p className="text-xs text-ink-light mb-3">Foreløpig kan du bruke appen uten konto</p>
-            <div className="flex items-center justify-center gap-4">
-              <a href="/utforsk" onClick={onClose} className="text-xs font-medium text-forest hover:text-forest-mid transition-colors duration-[120ms]">
-                Utforsk utstyr
-              </a>
-              <span className="text-border">·</span>
-              <a href="/selg" onClick={onClose} className="text-xs font-medium text-forest hover:text-forest-mid transition-colors duration-[120ms]">
-                Legg ut annonse
-              </a>
-              <span className="text-border">·</span>
-              <a href="/registrer-klubb" onClick={onClose} className="text-xs font-medium text-forest hover:text-forest-mid transition-colors duration-[120ms]">
-                Registrer klubb
-              </a>
-            </div>
-          </div>
+          <button
+            onClick={handleSubmit}
+            disabled={
+              loading ||
+              !form.email.trim() ||
+              !form.password ||
+              (mode === "signup" && !form.name.trim())
+            }
+            className="mt-4 w-full rounded-lg bg-forest py-2.5 text-sm font-semibold text-white hover:bg-forest-mid transition-colors duration-[120ms] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading
+              ? "Laster..."
+              : mode === "login"
+              ? "Logg inn"
+              : "Opprett konto"}
+          </button>
+
+          <p className="mt-4 text-center text-sm text-ink-light">
+            {mode === "login" ? (
+              <>
+                Har du ikke konto?{" "}
+                <button
+                  onClick={() => { setMode("signup"); setError(""); }}
+                  className="font-semibold text-forest hover:underline"
+                >
+                  Registrer deg
+                </button>
+              </>
+            ) : (
+              <>
+                Har du allerede konto?{" "}
+                <button
+                  onClick={() => { setMode("login"); setError(""); }}
+                  className="font-semibold text-forest hover:underline"
+                >
+                  Logg inn
+                </button>
+              </>
+            )}
+          </p>
         </div>
       </div>
     </div>
