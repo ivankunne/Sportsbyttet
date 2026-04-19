@@ -35,10 +35,31 @@ export function Header() {
   const [userName, setUserName] = useState<string | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [pendingSelg, setPendingSelg] = useState(false);
+  const [hasNewMessages, setHasNewMessages] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  async function checkNewMessages(profileId: number, email: string) {
+    const since = localStorage.getItem("dashboard_last_visited")
+      ?? new Date(0).toISOString();
+    const [{ data: sellerConvs }, { data: buyerConvs }] = await Promise.all([
+      supabase.from("conversations").select("id").eq("seller_id", profileId),
+      supabase.from("conversations").select("id").eq("buyer_email", email),
+    ]);
+    const ids = [
+      ...((sellerConvs ?? []) as { id: string }[]).map((c) => c.id),
+      ...((buyerConvs ?? []) as { id: string }[]).map((c) => c.id),
+    ];
+    if (!ids.length) return;
+    const { count } = await supabase
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .in("conversation_id", ids)
+      .gt("created_at", since);
+    setHasNewMessages((count ?? 0) > 0);
+  }
 
   // Track auth state
   useEffect(() => {
@@ -46,22 +67,29 @@ export function Header() {
       if (session) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("name")
+          .select("name, id")
           .eq("auth_user_id", session.user.id)
           .single();
         setUserName(profile?.name ?? session.user.email?.split("@")[0] ?? "Meg");
+        if (profile?.id && session.user.email) {
+          checkNewMessages(profile.id, session.user.email);
+        }
       }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("name")
+          .select("name, id")
           .eq("auth_user_id", session.user.id)
           .single();
         setUserName(profile?.name ?? session.user.email?.split("@")[0] ?? "Meg");
+        if (profile?.id && session.user.email) {
+          checkNewMessages(profile.id, session.user.email);
+        }
       } else {
         setUserName(null);
+        setHasNewMessages(false);
       }
     });
     return () => subscription.unsubscribe();
@@ -383,8 +411,11 @@ export function Header() {
                   onClick={() => setUserMenuOpen((v) => !v)}
                   className="flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-ink hover:bg-cream transition-colors duration-[120ms]"
                 >
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-forest text-white text-xs font-bold">
+                  <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-forest text-white text-xs font-bold">
                     {userName.slice(0, 1).toUpperCase()}
+                    {hasNewMessages && (
+                      <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white" />
+                    )}
                   </span>
                   <span className="max-w-[100px] truncate">{userName}</span>
                   <svg className="h-3.5 w-3.5 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -395,7 +426,7 @@ export function Header() {
                   <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-white border border-border shadow-lg overflow-hidden z-50">
                     <Link
                       href="/dashboard"
-                      onClick={() => setUserMenuOpen(false)}
+                      onClick={() => { setUserMenuOpen(false); setHasNewMessages(false); }}
                       className="flex w-full items-center gap-2 px-4 py-3 text-sm text-ink hover:bg-cream transition-colors duration-[120ms]"
                     >
                       <svg className="h-4 w-4 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

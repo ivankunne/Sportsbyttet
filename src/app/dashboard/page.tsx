@@ -72,6 +72,7 @@ export default function DashboardPage() {
         .single();
       setProfile(p as UserProfile ?? null);
       setLoading(false);
+      localStorage.setItem("dashboard_last_visited", new Date().toISOString());
     });
   }, [router]);
 
@@ -391,7 +392,7 @@ function ConversationView({
 
     return () => {
       mounted = false;
-      supabase.removeChannel(channel);
+      channel.unsubscribe();
     };
   }, [conversation.id, scrollToBottom]);
 
