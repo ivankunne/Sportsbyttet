@@ -89,7 +89,7 @@ export default function RegisterClubPage() {
         </div>
         <h1 className="font-display text-3xl font-bold text-ink">Søknad mottatt!</h1>
         <p className="mt-3 text-ink-mid leading-relaxed">
-          Takk for at du vil registrere klubben din på Sportsbyttet. Vi setter opp siden
+          Takk for at du vil registrere klubben din på Sportsbytte. Vi setter opp siden
           og tar kontakt innen <strong>24 timer</strong> på e-posten du oppgav.
         </p>
         <div className="mt-8 rounded-2xl bg-forest-light border border-forest/10 p-6 text-left space-y-3">
@@ -333,7 +333,7 @@ export default function RegisterClubPage() {
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Fortell litt om klubben, aktiviteter, og hvorfor dere vil bruke Sportsbyttet..."
+                placeholder="Fortell litt om klubben, aktiviteter, og hvorfor dere vil bruke Sportsbytte..."
                 className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest resize-none"
               />
             </div>

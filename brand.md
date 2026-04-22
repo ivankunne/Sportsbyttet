@@ -1,12 +1,12 @@
-# Sportsbyttet — Brand Reference
+# Sportsbytte — Brand Reference
 
 ## Identity
-- Name: Sportsbyttet
+- Name: Sportsbytte
 - Domain: sportsbyttet.no
 - Tagline (primary): "Brukt utstyr. Ekte kvalitet. Din klubb."
 
 ## Logo rules
-- Wordmark: "Sportsbyttet" in Fraunces 700
+- Wordmark: "Sportsbytte" in Fraunces 700
 - The "S" is always ~25% larger than other letters
 - "S" color: #e8843a (amber) on light and dark backgrounds
 - "S" color: #1a3c2e (forest) on amber backgrounds

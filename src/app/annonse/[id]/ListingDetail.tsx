@@ -129,7 +129,7 @@ export function ListingDetail({ id }: { id: string }) {
   }
 
   function shareWhatsApp() {
-    const text = encodeURIComponent(`Sjekk denne annonsen på Sportsbyttet: ${window.location.href}`);
+    const text = encodeURIComponent(`Sjekk denne annonsen på Sportsbytte: ${window.location.href}`);
     window.open(`https://wa.me/?text=${text}`, "_blank");
     setShareOpen(false);
   }

@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { error } = await resend.emails.send({
-    from: "Sportsbyttet <onboarding@resend.dev>",
+    from: "Sportsbytte <onboarding@resend.dev>",
     to: "ivan@frameflow.no",
     replyTo: email,
     subject: subject ? `Kontaktskjema: ${subject}` : `Kontaktskjema fra ${name}`,

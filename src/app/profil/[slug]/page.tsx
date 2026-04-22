@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!profile) return {};
   return {
     title: `${profile.name} — Selger`,
-    description: `Se annonser og vurderinger fra ${profile.name} på Sportsbyttet. ${profile.total_sold} solgte varer.`,
+    description: `Se annonser og vurderinger fra ${profile.name} på Sportsbytte. ${profile.total_sold} solgte varer.`,
   };
 }
 

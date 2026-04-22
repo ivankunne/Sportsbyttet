@@ -311,7 +311,7 @@ export function Header() {
                 onFocus={() => setSearchOpen(true)}
                 onKeyDown={handleKeyDown}
                 placeholder="Søk utstyr, klubber, personer..."
-                aria-label="Søk på Sportsbyttet"
+                aria-label="Søk på Sportsbytte"
                 className="w-full rounded-lg border border-border bg-white pl-10 pr-16 py-2 text-sm placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest transition-all"
               />
               <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-flex items-center gap-0.5 rounded border border-border bg-cream px-1.5 py-0.5 text-[10px] font-medium text-ink-light">
@@ -560,7 +560,7 @@ export function Header() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Søk utstyr, klubber, personer..."
-                aria-label="Søk på Sportsbyttet"
+                aria-label="Søk på Sportsbytte"
                 autoFocus
                 className="w-full rounded-lg border border-border bg-white pl-10 pr-4 py-2.5 text-sm placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20"
               />

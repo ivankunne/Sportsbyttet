@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Priser",
-  description: "Se prisene for Sportsbyttet — gratis å annonsere, 8 % transaksjonsgebyr ved salg. Klubbplan fra 199 kr/mnd.",
+  description: "Se prisene for Sportsbytte — gratis å annonsere, 8 % transaksjonsgebyr ved salg. Klubbplan fra 199 kr/mnd.",
 };
 
 export default function PricingPage() {

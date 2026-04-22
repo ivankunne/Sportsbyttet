@@ -4,7 +4,7 @@ import { ContactForm } from "./ContactForm";
 
 export const metadata: Metadata = {
   title: "Kontakt oss",
-  description: "Ta kontakt med Sportsbyttet for spørsmål om klubbregistrering, samarbeid eller teknisk hjelp.",
+  description: "Ta kontakt med Sportsbytte for spørsmål om klubbregistrering, samarbeid eller teknisk hjelp.",
 };
 
 export default function ContactPage() {
@@ -15,7 +15,7 @@ export default function ContactPage() {
           Kontakt oss
         </h1>
         <p className="mt-3 text-ink-mid max-w-lg mx-auto">
-          Har du spørsmål om Sportsbyttet, klubbregistrering eller samarbeid?
+          Har du spørsmål om Sportsbytte, klubbregistrering eller samarbeid?
           Vi svarer vanligvis innen 24 timer.
         </p>
       </div>

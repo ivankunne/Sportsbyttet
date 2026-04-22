@@ -4,7 +4,7 @@ import { getAllClubs } from "@/lib/queries";
 
 export const metadata: Metadata = {
   title: "Klubber",
-  description: "Se alle idrettsklubber på Sportsbyttet. Finn din klubb og utforsk brukt sportsutstyr fra medlemmer.",
+  description: "Se alle idrettsklubber på Sportsbytte. Finn din klubb og utforsk brukt sportsutstyr fra medlemmer.",
 };
 
 export const revalidate = 60;
@@ -16,7 +16,7 @@ export default async function ClubsPage() {
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
       <div className="max-w-2xl mb-12">
         <h1 className="font-display text-3xl sm:text-4xl font-bold text-ink">
-          Klubber på Sportsbyttet
+          Klubber på Sportsbytte
         </h1>
         <p className="mt-3 text-ink-mid leading-relaxed">
           Finn din klubb og utforsk brukt utstyr fra klubbmedlemmer. Hver klubb

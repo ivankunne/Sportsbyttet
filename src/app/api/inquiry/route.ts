@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   const listingUrl = `${req.nextUrl.origin}/annonse/${listing_id}`;
 
   const { error: emailError } = await resend.emails.send({
-    from: "Sportsbyttet <onboarding@resend.dev>",
+    from: "Sportsbytte <onboarding@resend.dev>",
     to: buyer_email,
     subject: `Din henvendelse om "${listing_title}" er sendt`,
     html: `
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
 
           <p style="font-size: 14px; color: #555; margin: 0 0 4px; line-height: 1.6;">
             Med vennlig hilsen,<br/>
-            <strong>Sportsbyttet-teamet</strong>
+            <strong>Sportsbytte-teamet</strong>
           </p>
 
           <p style="font-size: 12px; color: #aaa; margin: 24px 0 0;">Sendt fra sportsbyttet.no · ${new Date().toLocaleDateString("nb-NO", { day: "numeric", month: "long", year: "numeric" })}</p>

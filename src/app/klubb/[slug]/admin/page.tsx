@@ -391,7 +391,7 @@ export default function ClubAdminPage({
       setAuthenticated(true);
       setAuthError("");
     } else {
-      setAuthError("Feil passord. Kontakt Sportsbyttet for tilgang.");
+      setAuthError("Feil passord. Kontakt Sportsbytte for tilgang.");
     }
   }
 

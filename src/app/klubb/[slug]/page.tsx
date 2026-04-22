@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: club.name,
     description: `Kjøp og selg brukt sportsutstyr fra ${club.name}. ${club.active_listings} aktive annonser fra ${club.members} medlemmer.`,
     openGraph: {
-      title: `${club.name} | Sportsbyttet`,
+      title: `${club.name} | Sportsbytte`,
       description: `Brukt sportsutstyr fra ${club.name}-medlemmer.`,
     },
   };

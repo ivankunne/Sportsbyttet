@@ -45,9 +45,9 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Sportsbyttet column */}
+          {/* Sportsbytte column */}
           <div>
-            <h4 className="font-medium text-white text-sm mb-3">Sportsbyttet</h4>
+            <h4 className="font-medium text-white text-sm mb-3">Sportsbytte</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/om-oss" className="text-sm hover:text-white transition-colors duration-[120ms]">
@@ -99,7 +99,7 @@ export function Footer() {
         <div className="mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
           <div className="flex flex-col items-center sm:items-start gap-1">
             <p className="text-xs text-white/40">
-              © 2026 Sportsbyttet · Alle rettigheter reservert.
+              © 2026 Sportsbytte · Alle rettigheter reservert.
             </p>
             <p className="text-xs text-white/30">
               Driftes av Frameflow / Ivan Kunne · Org.nr. 936 600 018 ·{" "}

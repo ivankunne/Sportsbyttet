@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
       : record.content;
 
   const { error } = await resend.emails.send({
-    from: "Sportsbyttet <onboarding@resend.dev>",
+    from: "Sportsbytte <onboarding@resend.dev>",
     to: toEmail,
     subject,
     html: `
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
         <!-- Header -->
         <tr>
           <td style="background:#1a3a2a;padding:20px 28px;">
-            <span style="font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.3px;">Sportsbyttet</span>
+            <span style="font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.3px;">Sportsbytte</span>
           </td>
         </tr>
         <!-- Body -->
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
         <!-- Footer -->
         <tr>
           <td style="padding:16px 28px;border-top:1px solid #e5e3db;">
-            <p style="margin:0;font-size:12px;color:#aaa;">Du mottar denne e-posten fordi du har en aktiv samtale på Sportsbyttet. Driftes av Frameflow / Ivan Kunne.</p>
+            <p style="margin:0;font-size:12px;color:#aaa;">Du mottar denne e-posten fordi du har en aktiv samtale på Sportsbytte. Driftes av Frameflow / Ivan Kunne.</p>
           </td>
         </tr>
       </table>

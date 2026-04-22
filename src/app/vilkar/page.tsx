@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Brukervilkår — Sportsbyttet",
+  title: "Brukervilkår — Sportsbytte",
   description:
-    "Brukervilkår for Sportsbyttet. Les om dine rettigheter og plikter som kjøper og selger på plattformen.",
+    "Brukervilkår for Sportsbytte. Les om dine rettigheter og plikter som kjøper og selger på plattformen.",
 };
 
 export default function TermsPage() {
@@ -18,7 +18,7 @@ export default function TermsPage() {
           Brukervilkår
         </h1>
         <p className="mt-3 text-ink-mid leading-relaxed">
-          Disse vilkårene gjelder for alle som bruker Sportsbyttet — enten du
+          Disse vilkårene gjelder for alle som bruker Sportsbytte — enten du
           selger, kjøper eller bare kikker. Sist oppdatert{" "}
           <time dateTime="2026-04-17">17. april 2026</time>.
         </p>
@@ -34,14 +34,14 @@ export default function TermsPage() {
             Om tjenesten
           </h2>
           <p className="mt-4 text-ink-mid leading-relaxed text-sm">
-            Sportsbyttet er en digital markedsplass for kjøp og salg av brukt
+            Sportsbytte er en digital markedsplass for kjøp og salg av brukt
             sportsutstyr mellom privatpersoner, organisert rundt norske
-            idrettsklubber. Tjenesten drives av Sportsbyttet (under
+            idrettsklubber. Tjenesten drives av Sportsbytte (under
             etablering), med adresse i Bergen, Norge.
           </p>
           <p className="mt-3 text-ink-mid leading-relaxed text-sm">
             Plattformen lar klubber opprette egne sider der medlemmene kan
-            legge ut og kjøpe utstyr. Sportsbyttet er en formidler —
+            legge ut og kjøpe utstyr. Sportsbytte er en formidler —
             selve kjøpsavtalen inngås direkte mellom kjøper og selger.
           </p>
         </div>
@@ -97,8 +97,8 @@ export default function TermsPage() {
             Annonser og salg
           </h2>
           <p className="mt-4 text-ink-mid leading-relaxed text-sm">
-            Som selger på Sportsbyttet er du selv ansvarlig for innholdet du
-            publiserer. Sportsbyttet tar et tjenestegebyr på gjennomførte
+            Som selger på Sportsbytte er du selv ansvarlig for innholdet du
+            publiserer. Sportsbytte tar et tjenestegebyr på gjennomførte
             salg — gebyret trekkes automatisk fra utbetalingen til selger.
             Det er gratis å opprette annonser.
           </p>
@@ -116,11 +116,11 @@ export default function TermsPage() {
             <li className="flex items-start gap-2.5">
               <span className="text-forest font-bold mt-0.5 flex-shrink-0">—</span>
               Bilder og tekst du laster opp forblir din eiendom, men du gir
-              Sportsbyttet rett til å vise dem på plattformen.
+              Sportsbytte rett til å vise dem på plattformen.
             </li>
             <li className="flex items-start gap-2.5">
               <span className="text-forest font-bold mt-0.5 flex-shrink-0">—</span>
-              Sportsbyttet forbeholder seg retten til å fjerne annonser
+              Sportsbytte forbeholder seg retten til å fjerne annonser
               uten varsel dersom de bryter vilkårene.
             </li>
           </ul>
@@ -135,7 +135,7 @@ export default function TermsPage() {
             Betaling og frakt
           </h2>
           <p className="mt-4 text-ink-mid leading-relaxed text-sm">
-            Betaling på Sportsbyttet skjer via{" "}
+            Betaling på Sportsbytte skjer via{" "}
             <strong className="text-ink">Vipps</strong>. Beløpet holdes av
             plattformen til kjøper bekrefter mottak og er fornøyd — først da
             utbetales pengene til selger.
@@ -162,13 +162,13 @@ export default function TermsPage() {
             Kjøperbeskyttelse
           </h2>
           <p className="mt-4 text-ink-mid leading-relaxed text-sm">
-            Alle transaksjoner gjennomført via Sportsbyttet er dekket av
+            Alle transaksjoner gjennomført via Sportsbytte er dekket av
             kjøperbeskyttelse. Dersom varen ikke er som beskrevet i annonsen,
             kan kjøper åpne en sak innen{" "}
             <strong className="text-ink">48 timer</strong> etter mottak.
           </p>
           <p className="mt-3 text-ink-mid leading-relaxed text-sm">
-            Sportsbyttet vil da megle mellom kjøper og selger. Mulige utfall
+            Sportsbytte vil da megle mellom kjøper og selger. Mulige utfall
             er full refusjon, delvis refusjon eller at salget fastholdes.
             Beslutningen er endelig. Pengene holdes tilbake inntil saken er
             løst.
@@ -184,7 +184,7 @@ export default function TermsPage() {
             Forbudt innhold
           </h2>
           <p className="mt-4 text-ink-mid leading-relaxed text-sm">
-            Følgende er ikke tillatt på Sportsbyttet:
+            Følgende er ikke tillatt på Sportsbytte:
           </p>
           <ul className="mt-3 space-y-2 text-sm text-ink-mid">
             {[
@@ -218,7 +218,7 @@ export default function TermsPage() {
             Ansvarsbegrensning
           </h2>
           <p className="mt-4 text-ink-mid leading-relaxed text-sm">
-            Sportsbyttet er en formidlingstjeneste. Vi er ikke part i
+            Sportsbytte er en formidlingstjeneste. Vi er ikke part i
             kjøpsavtalen mellom kjøper og selger, og vi er ikke ansvarlige
             for kvaliteten på varer som selges, for forsinkelser i frakt
             eller for tvister som oppstår utenfor plattformens

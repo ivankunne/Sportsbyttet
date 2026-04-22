@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "For lagledere",
-  description: "Se hvordan Sportsbyttet hjelper lagledere med digitale byttemarked, utstyrsoversikt og kommunikasjon med foreldre.",
+  description: "Se hvordan Sportsbytte hjelper lagledere med digitale byttemarked, utstyrsoversikt og kommunikasjon med foreldre.",
 };
 
 export default function ForTeamLeadersPage() {
@@ -18,7 +18,7 @@ export default function ForTeamLeadersPage() {
         </h1>
         <p className="mt-4 text-lg text-ink-mid leading-relaxed">
           Som lagleder vet du at utstyrsbytting allerede skjer — i
-          garderoben, på Facebook, på treninger. Sportsbyttet samler alt på
+          garderoben, på Facebook, på treninger. Sportsbytte samler alt på
           ett sted og gjør det trygt, enkelt og organisert.
         </p>
       </div>
@@ -121,7 +121,7 @@ export default function ForTeamLeadersPage() {
           </p>
           <footer className="mt-4">
             <p className="font-medium text-ink">Ivan</p>
-            <p className="text-sm text-ink-light">Grunnlegger, Sportsbyttet</p>
+            <p className="text-sm text-ink-light">Grunnlegger, Sportsbytte</p>
           </footer>
         </blockquote>
       </div>

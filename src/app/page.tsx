@@ -142,7 +142,7 @@ export default async function HomePage() {
                 Finn din klubb
               </h2>
               <p className="mt-1 text-sm text-ink-mid">
-                {clubs.length} klubber på Sportsbyttet
+                {clubs.length} klubber på Sportsbytte
               </p>
             </div>
           </div>
@@ -271,7 +271,7 @@ export default async function HomePage() {
                 Din klubb fortjener sin egen markedsplass
               </h2>
               <p className="mt-4 text-white/70 leading-relaxed">
-                Hver klubb får sin egen side på Sportsbyttet — med logo,
+                Hver klubb får sin egen side på Sportsbytte — med logo,
                 farger og filtrerte annonser fra medlemmene. Gjør det enkelt
                 for lagkamerater å handle og selge brukt utstyr.
               </p>

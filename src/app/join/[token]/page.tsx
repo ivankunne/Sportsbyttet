@@ -171,7 +171,7 @@ export default function JoinViaInvitePage({
       <div className="bg-white rounded-2xl border border-border p-8">
         <h2 className="font-display text-xl font-bold text-ink mb-1">Du er invitert!</h2>
         <p className="text-sm text-ink-light mb-6">
-          Fyll inn navnet ditt for å bli med i {club.name} på Sportsbyttet.
+          Fyll inn navnet ditt for å bli med i {club.name} på Sportsbytte.
         </p>
 
         <form onSubmit={handleJoin} className="space-y-4">
@@ -224,7 +224,7 @@ export default function JoinViaInvitePage({
           <Link href="/vilkar" className="text-forest hover:underline">
             vilkårene
           </Link>{" "}
-          til Sportsbyttet.
+          til Sportsbytte.
         </p>
       </div>
     </div>

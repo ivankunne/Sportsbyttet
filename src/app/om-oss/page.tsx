@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Om oss — Sportsbyttet",
+  title: "Om oss — Sportsbytte",
   description:
-    "Historien bak Sportsbyttet — Norges markedsplass for brukt sportsutstyr, bygget rundt idrettsklubbene. Lær om oppdraget vårt, historien og menneskene bak.",
+    "Historien bak Sportsbytte — Norges markedsplass for brukt sportsutstyr, bygget rundt idrettsklubbene. Lær om oppdraget vårt, historien og menneskene bak.",
 };
 
 export default function AboutPage() {
@@ -16,7 +16,7 @@ export default function AboutPage() {
           Om oss
         </span>
         <h1 className="mt-3 font-display text-3xl sm:text-4xl font-bold text-ink">
-          Om Sportsbyttet
+          Om Sportsbytte
         </h1>
         <p className="mt-3 text-ink-mid leading-relaxed text-lg">
           Vi kobler idrettsklubbene og medlemmene deres — slik at brukt
@@ -40,7 +40,7 @@ export default function AboutPage() {
             Mellom disse to realitetene finnes et gap vi ønsker å fylle.
           </p>
           <p className="mt-3 text-ink-mid leading-relaxed">
-            Sportsbyttet gir hver idrettsklubb sin egen digitale markedsplass
+            Sportsbytte gir hver idrettsklubb sin egen digitale markedsplass
             der medlemmene kan kjøpe og selge brukt utstyr — trygt, fordi du
             handler med folk fra din egen klubb. Ikke med fremmede på Finn.no.
           </p>
@@ -80,7 +80,7 @@ export default function AboutPage() {
             En skitrener, en bod full av utstyr og en idé
           </h2>
           <p className="mt-4 text-ink-mid leading-relaxed">
-            Ideen til Sportsbyttet kom en høstdag i Bergen. En skitrener la
+            Ideen til Sportsbytte kom en høstdag i Bergen. En skitrener la
             merke til at halve garderoben til juniorlaget var full av utstyr
             barna hadde vokst ut av — mens nye foreldre desperat lette etter
             rimelig utstyr til kommende sesong. Løsningen burde vært enkel.
@@ -91,7 +91,7 @@ export default function AboutPage() {
             året. Ingen av delene var gode nok.
           </p>
           <p className="mt-3 text-ink-mid leading-relaxed">
-            Så ble Sportsbyttet bygget — en plattform der klubben er
+            Så ble Sportsbytte bygget — en plattform der klubben er
             utgangspunktet, tilliten er innebygd og handelen er like enkel som
             en Vipps-betaling. Vi er fremdeles tidlig, men fundamentet er
             solid og klubbene som er med gir oss tydelige tilbakemeldinger om
@@ -108,7 +108,7 @@ export default function AboutPage() {
             Et lite team med store ambisjoner
           </h2>
           <p className="mt-4 text-ink-mid leading-relaxed">
-            Sportsbyttet er grunnlagt av Ivan fra Bergen — med bakgrunn fra
+            Sportsbytte er grunnlagt av Ivan fra Bergen — med bakgrunn fra
             teknologi og idrettslag, og en grunnleggende overbevisning om at
             bruktmarkedet for sportsutstyr fortjener bedre enn
             Facebook-grupper. Plattformen er bygget fra bunnen av med norske
@@ -134,7 +134,7 @@ export default function AboutPage() {
         {/* ─── STATISTIKK ───────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl p-7 border border-border">
           <span className="font-display text-sm font-semibold uppercase tracking-wider text-ink-light">
-            Sportsbyttet i tall
+            Sportsbytte i tall
           </span>
           <div className="mt-6 grid grid-cols-3 gap-6 text-center">
             {[

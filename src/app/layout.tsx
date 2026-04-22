@@ -24,8 +24,8 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sportsbyttet.vercel
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Sportsbyttet — Kjøp og selg brukt sportsutstyr",
-    template: "%s | Sportsbyttet",
+    default: "Sportsbytte — Kjøp og selg brukt sportsutstyr",
+    template: "%s | Sportsbytte",
   },
   description:
     "Norges markedsplass for brukt sportsutstyr. Kjøp og selg direkte mellom klubbmedlemmer. Trygg betaling med Vipps, enkel frakt med Bring.",
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "nb_NO",
-    siteName: "Sportsbyttet",
-    title: "Sportsbyttet — Kjøp og selg brukt sportsutstyr",
+    siteName: "Sportsbytte",
+    title: "Sportsbytte — Kjøp og selg brukt sportsutstyr",
     description:
       "Brukt sportsutstyr fra klubbmedlemmer. Trygg handel med Vipps og Bring.",
     images: [
@@ -45,13 +45,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Sportsbyttet — Brukt utstyr. Ekte kvalitet. Din klubb.",
+        alt: "Sportsbytte — Brukt utstyr. Ekte kvalitet. Din klubb.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sportsbyttet — Kjøp og selg brukt sportsutstyr",
+    title: "Sportsbytte — Kjøp og selg brukt sportsutstyr",
     description:
       "Brukt sportsutstyr fra klubbmedlemmer. Trygg handel med Vipps og Bring.",
     images: ["/og-image.png"],

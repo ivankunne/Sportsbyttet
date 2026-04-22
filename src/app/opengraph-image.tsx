@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Sportsbyttet — Brukt utstyr. Ekte kvalitet. Din klubb.";
+export const alt = "Sportsbytte — Brukt utstyr. Ekte kvalitet. Din klubb.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -41,7 +41,7 @@ export default function OGImage() {
           }}
         >
           <div style={{ fontSize: 72, fontWeight: 700, color: "white", letterSpacing: -2 }}>
-            Sportsbyttet
+            Sportsbytte
           </div>
           <div
             style={{

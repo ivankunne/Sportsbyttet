@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
   // Then send email notification
   const { error } = await resend.emails.send({
-    from: "Sportsbyttet <onboarding@resend.dev>",
+    from: "Sportsbytte <onboarding@resend.dev>",
     to: "ivan@frameflow.no",
     subject: `Ny klubbregistrering: ${clubName}`,
     html: `

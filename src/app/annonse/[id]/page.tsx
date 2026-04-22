@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `${data.title} — ${data.price.toLocaleString("nb-NO")} kr`;
   const description = data.description
     ? data.description.slice(0, 150)
-    : `${data.category} til salgs${club ? ` fra ${club.name}` : ""} på Sportsbyttet.`;
+    : `${data.category} til salgs${club ? ` fra ${club.name}` : ""} på Sportsbytte.`;
 
   return {
     title,

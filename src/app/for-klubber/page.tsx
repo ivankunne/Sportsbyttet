@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "For idrettslag — Sportsbyttet",
+  title: "For idrettslag — Sportsbytte",
   description:
-    "Sportsbyttet gir hvert idrettslag en merkevarekledd markedsplass der medlemmene kan kjøpe og selge brukt sportsutstyr — trygt, enkelt og helt gratis for klubben.",
+    "Sportsbytte gir hvert idrettslag en merkevarekledd markedsplass der medlemmene kan kjøpe og selge brukt sportsutstyr — trygt, enkelt og helt gratis for klubben.",
 };
 
 export default function ForKlubberPage() {
@@ -20,7 +20,7 @@ export default function ForKlubberPage() {
             Gi klubbens medlemmer sin&nbsp;egen bruktmarkedsplass
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-white/75 max-w-2xl mx-auto leading-relaxed">
-            Sportsbyttet gir hvert idrettslag en merkevarekledd side der
+            Sportsbytte gir hvert idrettslag en merkevarekledd side der
             medlemmene kan kjøpe og selge brukt sportsutstyr — trygt, enkelt
             og helt gratis for klubben.
           </p>
@@ -104,7 +104,7 @@ export default function ForKlubberPage() {
             {/* Solution */}
             <div className="bg-forest text-white rounded-2xl p-8 sm:p-10">
               <h2 className="font-display text-2xl font-bold mb-6">
-                Slik er det med Sportsbyttet
+                Slik er det med Sportsbytte
               </h2>
               <ul className="space-y-4">
                 {[
@@ -540,7 +540,7 @@ export default function ForKlubberPage() {
             {[
               {
                 q: "Koster det noe for klubben?",
-                a: "Nei. Det er gratis å opprette og drive en klubbside på Sportsbyttet. Vi tar kun en liten plattformavgift per gjennomført transaksjon — den betales av kjøper eller deles med selger.",
+                a: "Nei. Det er gratis å opprette og drive en klubbside på Sportsbytte. Vi tar kun en liten plattformavgift per gjennomført transaksjon — den betales av kjøper eller deles med selger.",
               },
               {
                 q: "Hvem kan registrere klubben?",

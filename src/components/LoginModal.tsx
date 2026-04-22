@@ -46,7 +46,7 @@ export function LoginModal({ onClose, onSuccess }: Props) {
           <div className="text-center mb-6">
             <Logo variant="light" className="text-xl justify-center mb-3" />
             <h2 className="font-display text-xl font-bold text-ink">
-              Velkommen til Sportsbyttet
+              Velkommen til Sportsbytte
             </h2>
             <p className="mt-1 text-sm text-ink-light">
               Kjøp og selg brukt sportsutstyr i din klubb

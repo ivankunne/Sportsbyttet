@@ -1875,7 +1875,7 @@ export default function RegistreringerPage() {
       <div className="mx-auto max-w-sm px-4 py-24">
         <div className="bg-white rounded-2xl p-8 border border-border text-center">
           <h1 className="font-display text-xl font-bold text-ink mb-1">Admin</h1>
-          <p className="text-sm text-ink-light mb-6">Logg inn for å administrere Sportsbyttet</p>
+          <p className="text-sm text-ink-light mb-6">Logg inn for å administrere Sportsbytte</p>
           <form onSubmit={handleLogin} className="space-y-4">
             <input
               type="password"
@@ -1911,7 +1911,7 @@ export default function RegistreringerPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-display text-2xl font-bold text-ink">Sportsbyttet Admin</h1>
+          <h1 className="font-display text-2xl font-bold text-ink">Sportsbytte Admin</h1>
           <p className="text-sm text-ink-light mt-1">
             {stats.registrations > 0 &&
               `${registrations.filter((r) => r.status === "pending").length} registreringer venter`}

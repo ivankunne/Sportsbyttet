@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Personvernerklæring — Sportsbyttet",
+  title: "Personvernerklæring — Sportsbytte",
   description:
-    "Personvernerklæring for Sportsbyttet. Les om hvilke data vi samler inn, hvordan vi bruker dem og dine rettigheter.",
+    "Personvernerklæring for Sportsbytte. Les om hvilke data vi samler inn, hvordan vi bruker dem og dine rettigheter.",
 };
 
 export default function PrivacyPage() {
@@ -278,7 +278,7 @@ export default function PrivacyPage() {
           </p>
           <div className="mt-5 rounded-xl bg-cream p-5">
             <p className="text-sm font-semibold text-ink">
-              Sportsbyttet — Personvernansvarlig
+              Sportsbytte — Personvernansvarlig
             </p>
             <p className="mt-1 text-sm text-ink-mid">Bergen, Norge</p>
             <a
