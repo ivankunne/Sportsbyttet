@@ -445,12 +445,12 @@ export function Header() {
                 {userMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-52 rounded-xl bg-white border border-border shadow-lg overflow-hidden z-50">
                     <Link
-                      href="/dashboard"
-                      onClick={() => { setUserMenuOpen(false); setHasNewMessages(false); }}
+                      href="/dashboard?tab=profil"
+                      onClick={() => setUserMenuOpen(false)}
                       className="flex w-full items-center gap-2 px-4 py-3 text-sm text-ink hover:bg-cream transition-colors duration-[120ms]"
                     >
                       <svg className="h-4 w-4 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                       </svg>
                       Min side
                     </Link>
@@ -633,15 +633,38 @@ export function Header() {
           </nav>
           <div className="px-4 pb-4 pt-1 border-t border-border space-y-2">
             {userName ? (
-              <button
-                onClick={() => { setMenuOpen(false); handleLogout(); }}
-                className="flex items-center justify-center gap-2 w-full rounded-lg border border-border px-5 py-3 text-sm font-semibold text-ink-mid hover:bg-cream transition-colors duration-[120ms]"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l3 3m0 0l-3 3m3-3H3" />
-                </svg>
-                Logg ut ({userName})
-              </button>
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => { setMenuOpen(false); setHasNewMessages(false); }}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-mid hover:bg-cream hover:text-forest transition-colors duration-[120ms]"
+                >
+                  <svg className="h-5 w-5 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                  </svg>
+                  <span className="flex-1">Innboks</span>
+                  {hasNewMessages && <span className="h-2 w-2 rounded-full bg-red-500 flex-shrink-0" />}
+                </Link>
+                <Link
+                  href="/dashboard?tab=profil"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-mid hover:bg-cream hover:text-forest transition-colors duration-[120ms]"
+                >
+                  <svg className="h-5 w-5 text-ink-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                  Min side
+                </Link>
+                <button
+                  onClick={() => { setMenuOpen(false); handleLogout(); }}
+                  className="flex items-center justify-center gap-2 w-full rounded-lg border border-border px-5 py-3 text-sm font-semibold text-ink-mid hover:bg-cream transition-colors duration-[120ms]"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l3 3m0 0l-3 3m3-3H3" />
+                  </svg>
+                  Logg ut
+                </button>
+              </>
             ) : (
               <button
                 onClick={() => { setMenuOpen(false); setLoginOpen(true); }}

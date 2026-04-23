@@ -321,6 +321,7 @@ export type Database = {
         Row: {
           auth_user_id: string | null
           avatar: string
+          avatar_url: string | null
           bio: string
           club_id: number | null
           created_at: string
@@ -336,6 +337,7 @@ export type Database = {
         Insert: {
           auth_user_id?: string | null
           avatar?: string
+          avatar_url?: string | null
           bio?: string
           club_id?: number | null
           created_at?: string
@@ -351,6 +353,7 @@ export type Database = {
         Update: {
           auth_user_id?: string | null
           avatar?: string
+          avatar_url?: string | null
           bio?: string
           club_id?: number | null
           created_at?: string

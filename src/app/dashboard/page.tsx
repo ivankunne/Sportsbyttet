@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 type Tab = "innboks" | "annonser" | "profil";
@@ -13,6 +14,7 @@ type UserProfile = {
   bio: string;
   vipps_phone: string | null;
   avatar: string;
+  avatar_url: string | null;
   club_id: number | null;
   total_sold: number;
   rating: number;
@@ -55,14 +57,32 @@ type MyListing = {
 // ─── Page ────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-forest border-t-transparent animate-spin" />
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userEmail, setUserEmail] = useState("");
-  const [tab, setTab] = useState<Tab>("innboks");
+  const initialTab = (searchParams.get("tab") as Tab | null) ?? "innboks";
+  const [tab, setTab] = useState<Tab>(initialTab);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    let mounted = true;
+
+    async function loadProfile() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!mounted) return;
       if (!session) { router.push("/"); return; }
       setUserEmail(session.user.email ?? "");
       const { data: p } = await supabase
@@ -70,10 +90,20 @@ export default function DashboardPage() {
         .select("*")
         .eq("auth_user_id", session.user.id)
         .single();
+      if (!mounted) return;
       setProfile(p as UserProfile ?? null);
       setLoading(false);
       localStorage.setItem("dashboard_last_visited", new Date().toISOString());
+    }
+
+    loadProfile();
+
+    // Also listen for sign-out
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") router.push("/");
     });
+
+    return () => { mounted = false; subscription.unsubscribe(); };
   }, [router]);
 
   if (loading) {
@@ -83,6 +113,7 @@ export default function DashboardPage() {
       </div>
     );
   }
+
 
   if (!profile) {
     return (
@@ -743,6 +774,9 @@ function ProfilTab({
   profile: UserProfile;
   onSave: (updated: Partial<UserProfile>) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(profile.avatar_url ?? null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [form, setForm] = useState({
     name: profile.name,
     bio: profile.bio ?? "",
@@ -751,6 +785,24 @@ function ProfilTab({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `profile-avatars/${profile.id}.${ext}`;
+    const { data, error: uploadErr } = await supabase.storage
+      .from("listing-images")
+      .upload(path, file, { upsert: true });
+    if (uploadErr) { setAvatarUploading(false); return; }
+    const { data: urlData } = supabase.storage.from("listing-images").getPublicUrl(data.path);
+    const newUrl = urlData.publicUrl;
+    await supabase.from("profiles").update({ avatar_url: newUrl }).eq("id", profile.id);
+    setAvatarUrl(newUrl);
+    onSave({ avatar_url: newUrl });
+    setAvatarUploading(false);
+  }
 
   async function save() {
     setError("");
@@ -780,8 +832,48 @@ function ProfilTab({
 
   return (
     <div className="max-w-lg space-y-5">
-      <div className="bg-white rounded-xl p-6 space-y-4">
+      <div className="bg-white rounded-xl p-6 space-y-5">
         <h2 className="font-display text-base font-semibold text-ink">Rediger profil</h2>
+
+        {/* Avatar upload */}
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={avatarUploading}
+            className="relative group flex-shrink-0"
+          >
+            <div className="h-20 w-20 rounded-full overflow-hidden bg-forest-light flex items-center justify-center text-forest font-bold text-2xl font-display ring-2 ring-border group-hover:ring-forest transition-all duration-[120ms]">
+              {avatarUrl ? (
+                <Image src={avatarUrl} alt={profile.name} fill className="object-cover" />
+              ) : (
+                profile.avatar
+              )}
+            </div>
+            <div className="absolute inset-0 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-[120ms] flex items-center justify-center">
+              {avatarUploading ? (
+                <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+              ) : (
+                <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+                </svg>
+              )}
+            </div>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
+          <div>
+            <p className="text-sm font-medium text-ink">Profilbilde</p>
+            <p className="text-xs text-ink-light mt-0.5">Klikk på bildet for å laste opp</p>
+            <p className="text-xs text-ink-light">JPG, PNG — maks 5 MB</p>
+          </div>
+        </div>
 
         <div>
           <label className="block text-xs font-medium text-ink mb-1.5">Navn</label>
