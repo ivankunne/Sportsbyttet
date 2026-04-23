@@ -98,13 +98,35 @@ export function AuthForm({ onSuccess, initialMode = "login" }: Props) {
           .select("id")
           .single();
 
+        let membershipId: number | null = null;
         if (selectedClub && newProfile) {
-          await supabase.from("memberships").insert({
-            club_id: selectedClub.id,
-            profile_id: newProfile.id,
-            status: "pending",
-            message: "Søkt via registrering",
-          });
+          const { data: mem } = await supabase
+            .from("memberships")
+            .insert({
+              club_id: selectedClub.id,
+              profile_id: newProfile.id,
+              status: "pending",
+              message: "Søkt via registrering",
+            })
+            .select("id")
+            .single();
+          membershipId = mem?.id ?? null;
+        }
+
+        // Fire welcome + membership emails (non-blocking)
+        const origin = window.location.origin;
+        fetch(`${origin}/api/notify-welcome`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: form.name.trim(), email: form.email.trim() }),
+        }).catch(() => {});
+
+        if (membershipId) {
+          fetch(`${origin}/api/notify-membership`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "submitted", membership_id: membershipId }),
+          }).catch(() => {});
         }
 
         onSuccess({

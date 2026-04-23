@@ -117,6 +117,11 @@ export function ListingDetail({ id }: { id: string }) {
     setIsSold(true);
     setConfirmSold(false);
     showSuccess("Annonsen er merket som solgt!");
+    fetch("/api/notify-listing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "sold", listing_id: listing.id }),
+    }).catch(() => {});
   }
 
   const images = listing.images.length > 0 ? listing.images : ["https://picsum.photos/seed/default/800/600"];

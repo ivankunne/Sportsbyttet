@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
+import { buildEmail, infoBox, p, FROM } from "@/lib/email";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -97,53 +98,18 @@ export async function POST(req: NextRequest) {
       ? record.content.slice(0, 197) + "..."
       : record.content;
 
-  const { error } = await resend.emails.send({
-    from: "Sportsbytte <onboarding@resend.dev>",
-    to: toEmail,
-    subject,
-    html: `
-<!DOCTYPE html>
-<html lang="no">
-<head><meta charset="UTF-8" /></head>
-<body style="margin:0;padding:0;background:#f5f4f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f4f0;padding:32px 16px;">
-    <tr><td align="center">
-      <table width="100%" style="max-width:520px;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e5e3db;">
-        <!-- Header -->
-        <tr>
-          <td style="background:#1a3a2a;padding:20px 28px;">
-            <span style="font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.3px;">Sportsbytte</span>
-          </td>
-        </tr>
-        <!-- Body -->
-        <tr>
-          <td style="padding:28px;">
-            <p style="margin:0 0 6px;font-size:13px;color:#888;text-transform:uppercase;letter-spacing:.5px;">Ny melding</p>
-            <h1 style="margin:0 0 20px;font-size:20px;font-weight:700;color:#111;">${subject}</h1>
-
-            <!-- Message bubble -->
-            <div style="background:#f5f4f0;border-radius:12px;padding:16px;margin-bottom:24px;">
-              <p style="margin:0;font-size:15px;color:#333;line-height:1.6;white-space:pre-wrap;">${messageSnippet}</p>
-            </div>
-
-            <a href="${listingUrl}" style="display:inline-block;background:#1a3a2a;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
-              Åpne samtalen →
-            </a>
-          </td>
-        </tr>
-        <!-- Footer -->
-        <tr>
-          <td style="padding:16px 28px;border-top:1px solid #e5e3db;">
-            <p style="margin:0;font-size:12px;color:#aaa;">Du mottar denne e-posten fordi du har en aktiv samtale på Sportsbytte. Driftes av Frameflow / Ivan Kunne.</p>
-          </td>
-        </tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>
-    `.trim(),
+  const html = buildEmail({
+    heading: subject,
+    kicker: "Ny melding",
+    body: `
+      ${p(`Hei ${toName},`)}
+      ${infoBox(messageSnippet)}
+    `,
+    cta: { href: listingUrl, label: "Åpne samtalen" },
+    footerNote: "Du mottar denne e-posten fordi du har en aktiv samtale på Sportsbytte.",
   });
+
+  const { error } = await resend.emails.send({ from: FROM, to: toEmail, subject, html });
 
   if (error) {
     console.error("Resend error:", error);

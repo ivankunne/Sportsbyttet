@@ -397,6 +397,11 @@ export default function ClubAdminPage({
 
   async function handleMembershipAction(id: number, status: "approved" | "rejected") {
     await updateMembershipStatus(id, status);
+    fetch("/api/notify-membership", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: status, membership_id: id }),
+    }).catch(() => {});
     if (club) await fetchMemberships(club.id);
   }
 
