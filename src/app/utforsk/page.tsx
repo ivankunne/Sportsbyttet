@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import type { ListingWithRelations, Category } from "@/lib/queries";
 import { ListingCard } from "@/components/ListingCard";
 import { ListingCardSkeleton } from "@/components/Skeleton";
+import { SavedSearchAlert } from "@/components/SavedSearchAlert";
 
 const CONDITIONS = [
   { value: "", label: "Alle" },
@@ -237,6 +238,14 @@ function ExplorePage() {
             </button>
           )}
         </div>
+      </div>
+
+      {/* Save search alert */}
+      <div className="mb-6">
+        <SavedSearchAlert
+          defaultKeywords={query}
+          defaultCategory={activeCategory}
+        />
       </div>
 
       {/* Results */}

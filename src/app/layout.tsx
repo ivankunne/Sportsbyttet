@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Toaster } from "@/components/Toaster";
+import { MobileNav } from "@/components/MobileNav";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
       "Brukt sportsutstyr fra klubbmedlemmer. Trygg handel med Vipps og Bring.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
         alt: "Sportsbytte — Brukt utstyr. Ekte kvalitet. Din klubb.",
@@ -54,12 +55,14 @@ export const metadata: Metadata = {
     title: "Sportsbytte — Kjøp og selg brukt sportsutstyr",
     description:
       "Brukt sportsutstyr fra klubbmedlemmer. Trygg handel med Vipps og Bring.",
-    images: ["/og-image.png"],
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
     follow: true,
   },
+  manifest: "/manifest.json",
+  themeColor: "#134e4a",
 };
 
 export default function RootLayout({
@@ -74,9 +77,10 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans">
         <Header />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 pb-16 md:pb-0">{children}</main>
         <Footer />
         <Toaster />
+        <MobileNav />
       </body>
     </html>
   );

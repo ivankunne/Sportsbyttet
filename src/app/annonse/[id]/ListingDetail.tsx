@@ -370,7 +370,11 @@ export function ListingDetail({ id }: { id: string }) {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0H21M3.375 14.25V3.375c0-.621.504-1.125 1.125-1.125h9.75c.621 0 1.125.504 1.125 1.125v1.5m0 0h3.375c.621 0 1.125.504 1.125 1.125v1.5M15.375 6v11.25" />
                     </svg>
                     <div>
-                      <p className="font-medium text-ink">Frakt med Bring fra 99 kr</p>
+                      <p className="font-medium text-ink flex items-center gap-1.5">
+                        Frakt med{" "}
+                        <Image src="/Bring_logo.svg.png" alt="Bring" width={40} height={14} className="h-3.5 w-auto inline-block" />
+                        {" "}fra 99 kr
+                      </p>
                       <p className="text-ink-mid mt-0.5">Fraktlabel genereres automatisk etter kjøp</p>
                     </div>
                   </div>

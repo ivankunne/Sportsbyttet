@@ -16,7 +16,7 @@ export default function OGImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#1a3c2e",
+          backgroundColor: "#134e4a",
           position: "relative",
         }}
       >
@@ -56,7 +56,7 @@ export default function OGImage() {
             style={{
               width: 60,
               height: 4,
-              backgroundColor: "#d97706",
+              backgroundColor: "#0d9488",
               borderRadius: 2,
               marginTop: 12,
             }}

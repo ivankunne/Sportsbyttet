@@ -120,9 +120,13 @@ export function Footer() {
               className="h-5 w-auto opacity-70 hover:opacity-100 transition-opacity duration-[120ms]"
             />
             <span className="text-white/20">·</span>
-            <span className="text-sm font-bold tracking-tight text-white/60 hover:text-white/90 transition-colors duration-[120ms]">
-              Bring
-            </span>
+            <Image
+              src="/Bring_logo.svg.png"
+              alt="Bring"
+              width={56}
+              height={20}
+              className="h-5 w-auto opacity-60 hover:opacity-90 brightness-0 invert transition-opacity duration-[120ms]"
+            />
           </div>
         </div>
       </div>
