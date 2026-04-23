@@ -1,18 +1,19 @@
+import Image from "next/image";
+
 type Props = {
   variant?: "light" | "dark" | "amber";
   className?: string;
 };
 
 export function Logo({ variant = "light", className = "" }: Props) {
-  const sColor =
-    variant === "amber" ? "text-forest" : "text-amber";
-  const restColor =
-    variant === "dark" ? "text-white" : "text-forest";
-
   return (
-    <span className={`font-display font-bold tracking-tight ${className}`}>
-      <span className={`${sColor}`} style={{ fontSize: "1.25em" }}>S</span>
-      <span className={restColor}>portsbytte</span>
-    </span>
+    <Image
+      src="/Sportbytte_logo.png"
+      alt="Sportsbytte"
+      width={140}
+      height={38}
+      className={`h-8 w-auto ${variant === "dark" ? "brightness-0 invert" : ""} ${className}`}
+      priority
+    />
   );
 }
