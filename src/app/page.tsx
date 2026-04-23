@@ -2,9 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { getFeaturedListings, getAllCategories, getAllClubs, thumbnailUrl } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
-import { ListingCard } from "@/components/ListingCard";
 import { ClubSearch } from "@/components/ClubSearch";
 import { StatsBar } from "@/components/StatsBar";
+import { HomepageListings } from "@/components/HomepageListings";
+import { ActivityTicker } from "@/components/ActivityTicker";
+import { OnboardingNudge } from "@/components/OnboardingNudge";
 
 export const revalidate = 60;
 
@@ -101,14 +103,20 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Onboarding nudge — only shown to logged-in users without a club */}
+      <OnboardingNudge />
+
       {/* Stats bar */}
       <StatsBar listings={stats.listings} clubs={stats.clubs} sold={stats.sold} />
 
-      {/* Featured listings */}
+      {/* Activity ticker */}
+      <ActivityTicker />
+
+      {/* Listings with filters */}
       <section className="mx-auto max-w-7xl px-6 sm:px-6 lg:px-12 py-12 sm:py-16">
         <div className="flex items-end justify-between mb-8">
           <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink">
-            Nylig lagt ut
+            Annonser
           </h2>
           <Link
             href="/utforsk"
@@ -117,12 +125,7 @@ export default async function HomePage() {
             Se alle →
           </Link>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featured.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
-          ))}
-        </div>
+        <HomepageListings initialCategories={categories} />
       </section>
 
       {/* Categories */}

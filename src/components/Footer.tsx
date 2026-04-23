@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+
 export function Footer() {
   return (
     <footer className="bg-forest text-white/60">
@@ -109,11 +110,19 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-white/40">
-            <span>Trygg handel med</span>
-            <span className="font-semibold text-white/60">Vipps</span>
-            <span>&amp;</span>
-            <span className="font-semibold text-white/60">Bring</span>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-white/40">Trygg handel med</span>
+            <Image
+              src="/vipps-white.png"
+              alt="Vipps"
+              width={56}
+              height={20}
+              className="h-5 w-auto opacity-70 hover:opacity-100 transition-opacity duration-[120ms]"
+            />
+            <span className="text-white/20">·</span>
+            <span className="text-sm font-bold tracking-tight text-white/60 hover:text-white/90 transition-colors duration-[120ms]">
+              Bring
+            </span>
           </div>
         </div>
       </div>
