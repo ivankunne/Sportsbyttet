@@ -32,7 +32,7 @@ export function ListingCard({ listing }: Props) {
         }`}
       >
         {/* Image */}
-        <div className="relative aspect-square bg-[#f2f2f2] overflow-hidden">
+        <div className="relative aspect-[4/3] bg-[#f2f2f2] overflow-hidden">
           <Image
             src={thumbnailUrl(listing)}
             alt={listing.title}

@@ -5,7 +5,7 @@ function Bone({ className = "" }: { className?: string }) {
 export function ListingCardSkeleton() {
   return (
     <div className="bg-white rounded-2xl border border-border overflow-hidden">
-      <Bone className="aspect-square w-full rounded-none" />
+      <Bone className="aspect-[4/3] w-full rounded-none" />
       <div className="p-4 space-y-2.5">
         <Bone className="h-4 w-4/5" />
         <Bone className="h-5 w-24" />
