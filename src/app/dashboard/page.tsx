@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { showSuccess, showError } from "@/components/Toaster";
 
 type Tab = "innboks" | "annonser" | "profil";
 
@@ -18,6 +19,8 @@ type UserProfile = {
   club_id: number | null;
   total_sold: number;
   rating: number;
+  stripe_account_id: string | null;
+  stripe_onboarding_complete: boolean;
 };
 
 type ConvListing = { id: number; title: string; price: number };
@@ -76,6 +79,7 @@ function DashboardContent() {
   const [userEmail, setUserEmail] = useState("");
   const initialTab = (searchParams.get("tab") as Tab | null) ?? "innboks";
   const [tab, setTab] = useState<Tab>(initialTab);
+  const stripeReturn = searchParams.get("stripe");
 
   useEffect(() => {
     let mounted = true;
@@ -94,6 +98,12 @@ function DashboardContent() {
       setProfile(p as UserProfile ?? null);
       setLoading(false);
       localStorage.setItem("dashboard_last_visited", new Date().toISOString());
+      if (stripeReturn === "success") {
+        // Profile will update via webhook; show optimistic message
+        showSuccess("Stripe-oppsett fullført! Kortbetaling er nå aktivert på annonser dine.");
+      } else if (stripeReturn === "refresh") {
+        showError("Stripe-oppsett ikke fullført. Prøv igjen.");
+      }
     }
 
     loadProfile();
@@ -767,6 +777,70 @@ function AnnonserTab({ profile }: { profile: UserProfile }) {
 
 // ─── Profil ──────────────────────────────────────────────
 
+// ─── Stripe Connect card ─────────────────────────────────
+
+function StripeConnectCard({ profile }: { profile: UserProfile }) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleConnect() {
+    setLoading(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setLoading(false); return; }
+    const res = await fetch("/api/stripe/connect", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${session.access_token}` },
+    });
+    const json = await res.json();
+    if (json.url) window.location.href = json.url;
+    else setLoading(false);
+  }
+
+  const isConnected = profile.stripe_account_id && profile.stripe_onboarding_complete;
+  const isPending = profile.stripe_account_id && !profile.stripe_onboarding_complete;
+
+  return (
+    <div className="bg-white rounded-xl p-6">
+      <h2 className="font-display text-base font-semibold text-ink mb-1">Kortbetaling</h2>
+      <p className="text-xs text-ink-light mb-4">La kjøpere betale direkte med kort. Du mottar pengene direkte fra Stripe.</p>
+
+      {isConnected ? (
+        <div className="flex items-center gap-2 rounded-lg bg-forest-light px-4 py-3">
+          <svg className="h-4 w-4 text-forest flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+          <span className="text-sm font-medium text-forest">Stripe aktivert — kjøpere kan betale med kort</span>
+        </div>
+      ) : isPending ? (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 rounded-lg bg-amber-light border border-amber/30 px-4 py-3">
+            <svg className="h-4 w-4 text-amber-dark flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
+            </svg>
+            <span className="text-sm font-medium text-amber-dark">Oppsett ikke fullført</span>
+          </div>
+          <button
+            onClick={handleConnect}
+            disabled={loading}
+            className="w-full rounded-lg border border-border py-2.5 text-sm font-semibold text-ink hover:bg-cream transition-colors disabled:opacity-50"
+          >
+            {loading ? "Åpner Stripe..." : "Fullfør Stripe-oppsett"}
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={handleConnect}
+          disabled={loading}
+          className="w-full rounded-lg bg-[#635bff] py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+        >
+          {loading ? "Åpner Stripe..." : "Koble til Stripe"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── Profil ──────────────────────────────────────────────
+
 function ProfilTab({
   profile,
   onSave,
@@ -920,6 +994,8 @@ function ProfilTab({
           {saving ? "Lagrer..." : saved ? "✓ Lagret!" : "Lagre endringer"}
         </button>
       </div>
+
+      <StripeConnectCard profile={profile} />
 
       <div className="bg-white rounded-xl p-6">
         <h2 className="font-display text-base font-semibold text-ink mb-4">Din statistikk</h2>

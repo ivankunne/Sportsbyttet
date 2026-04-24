@@ -20,6 +20,7 @@ export function ListingDetail({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [isSold, setIsSold] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [checkingOut, setCheckingOut] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -151,6 +152,36 @@ export function ListingDetail({ id }: { id: string }) {
       showError("Kunne ikke sende vurdering. Prøv igjen.");
     } finally {
       setRatingLoading(false);
+    }
+  }
+
+  async function handleBuyNow() {
+    setCheckingOut(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        showError("Logg inn for å kjøpe");
+        setCheckingOut(false);
+        return;
+      }
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ listing_id: Number(id) }),
+      });
+      const json = await res.json();
+      if (json.url) {
+        window.location.href = json.url;
+      } else {
+        showError(json.error ?? "Noe gikk galt");
+        setCheckingOut(false);
+      }
+    } catch {
+      showError("Noe gikk galt");
+      setCheckingOut(false);
     }
   }
 
@@ -314,6 +345,19 @@ export function ListingDetail({ id }: { id: string }) {
                 </div>
               ) : (
                 <div className="space-y-3 mb-6">
+                  {(listing.profiles as { stripe_account_id?: string | null; stripe_onboarding_complete?: boolean }).stripe_account_id &&
+                   (listing.profiles as { stripe_onboarding_complete?: boolean }).stripe_onboarding_complete && (
+                    <button
+                      onClick={handleBuyNow}
+                      disabled={checkingOut}
+                      className="w-full rounded-lg bg-ink py-3.5 text-sm font-bold text-white hover:bg-ink/90 transition-colors duration-[120ms] flex items-center justify-center gap-2 disabled:opacity-60"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                      </svg>
+                      {checkingOut ? "Åpner betaling..." : `Kjøp nå — ${listing.price.toLocaleString("nb-NO")} kr`}
+                    </button>
+                  )}
                   <button
                     onClick={() => setChatOpen(true)}
                     className="w-full rounded-lg bg-forest py-3.5 text-sm font-bold text-white hover:bg-forest-mid transition-colors duration-[120ms] flex items-center justify-center gap-2"
@@ -323,7 +367,6 @@ export function ListingDetail({ id }: { id: string }) {
                     </svg>
                     Send melding til selger
                   </button>
-
                 </div>
               )}
 

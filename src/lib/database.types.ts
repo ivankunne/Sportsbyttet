@@ -330,6 +330,8 @@ export type Database = {
           name: string
           rating: number
           slug: string
+          stripe_account_id: string | null
+          stripe_onboarding_complete: boolean
           total_sold: number
           updated_at: string
           vipps_phone: string | null
@@ -346,6 +348,8 @@ export type Database = {
           name: string
           rating?: number
           slug: string
+          stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean
           total_sold?: number
           updated_at?: string
           vipps_phone?: string | null
@@ -362,6 +366,8 @@ export type Database = {
           name?: string
           rating?: number
           slug?: string
+          stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean
           total_sold?: number
           updated_at?: string
           vipps_phone?: string | null
