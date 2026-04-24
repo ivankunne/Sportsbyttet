@@ -1006,7 +1006,7 @@ function BrukereTab() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Søk etter bruker, slug, Vipps-nummer..."
+            placeholder="Søk etter bruker, slug..."
             className="w-full rounded-lg border border-border bg-white pl-9 pr-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
           />
         </div>
@@ -1159,7 +1159,7 @@ function BrukereTab() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-ink-mid mb-1">Vipps-nummer</label>
+              <label className="block text-xs font-semibold text-ink-mid mb-1">Telefonnummer</label>
               <input
                 type="tel"
                 value={form.vipps_phone}
@@ -1759,7 +1759,7 @@ function MeldingerTab() {
                     : "bg-cream text-ink rounded-bl-sm"
                 }`}>
                   {msg.type === "vipps_request" && (
-                    <span className="block text-[11px] font-bold uppercase tracking-wide opacity-70 mb-1">Vipps-forespørsel</span>
+                    <span className="block text-[11px] font-bold uppercase tracking-wide opacity-70 mb-1">Betalingsforespørsel</span>
                   )}
                   {msg.type === "bring_request" && (
                     <span className="block text-[11px] font-bold uppercase tracking-wide opacity-70 mb-1">Bring frakt</span>

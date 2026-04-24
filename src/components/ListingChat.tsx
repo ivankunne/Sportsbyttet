@@ -275,15 +275,6 @@ export function ListingChat({
     }
   }
 
-  async function sendVippsRequest() {
-    const sellerPhone = listing.profiles?.vipps_phone;
-    await sendMessage(
-      `Ønsker å betale ${listing.price.toLocaleString("nb-NO")} kr med Vipps`,
-      "vipps_request",
-      { amount: listing.price, seller_phone: sellerPhone ?? null } as Json
-    );
-  }
-
   async function fetchBringPrices() {
     if (!/^\d{4}$/.test(bringPostal)) {
       setBringError("Skriv inn et gyldig 4-sifret postnummer");
@@ -460,7 +451,6 @@ export function ListingChat({
                   key={msg.id}
                   message={msg}
                   listingPrice={listing.price}
-                  sellerPhone={listing.profiles?.vipps_phone}
                 />
               ))}
               <div ref={messagesEndRef} />
@@ -568,17 +558,6 @@ export function ListingChat({
 
             {/* Quick action buttons */}
             <div className="px-4 pt-2 pb-1 flex gap-2 flex-shrink-0 overflow-x-auto">
-              {/* VIPPS_HIDDEN: remove false && to re-enable Vipps payment button */}
-              {false && (
-                <button
-                  onClick={sendVippsRequest}
-                  className="flex flex-shrink-0 items-center gap-1.5 rounded-full bg-[#FF5B24] px-4 py-2 hover:brightness-110 active:scale-[0.98] transition-all duration-[120ms]"
-                >
-                  <span className="text-xs font-semibold text-white">Betal med</span>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/vipps-white.png" alt="Vipps" className="h-[14px] w-auto" />
-                </button>
-              )}
               <button
                 onClick={() => setShowBringForm((v) => !v)}
                 className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-ink-mid hover:bg-cream transition-colors duration-[120ms]"
@@ -646,40 +625,11 @@ export function ListingChat({
 function MessageBubble({
   message,
   listingPrice,
-  sellerPhone,
 }: {
   message: Message;
   listingPrice: number;
-  sellerPhone?: string | null;
 }) {
   const isMe = !message.is_from_seller;
-
-  if (message.type === "vipps_request") {
-    return (
-      <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-        <div className="rounded-2xl bg-[#FF5B24] p-4 max-w-[75%]">
-          <div className="flex items-center gap-2 mb-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/vipps-white.png" alt="Vipps" className="h-4 w-auto" />
-          </div>
-          <p className="text-lg font-bold text-white">
-            {listingPrice.toLocaleString("nb-NO")} kr
-          </p>
-          <p className="text-xs text-white/70 mt-0.5">Betalingsforespørsel</p>
-          {sellerPhone && (
-            <a
-              href={`https://qr.vipps.no/28/2/01/031/${sellerPhone}?v=1`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 block w-full text-center text-xs font-semibold bg-white/20 rounded-lg py-2 hover:bg-white/30 transition-colors text-white"
-            >
-              Åpne i Vipps →
-            </a>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   if (message.type === "bring_request") {
     return (

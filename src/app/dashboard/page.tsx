@@ -521,8 +521,7 @@ function ConversationView({
         )}
         {messages.map((msg) => {
           const isMe = isSeller ? msg.is_from_seller : !msg.is_from_seller;
-          const isSpecial =
-            msg.type === "vipps_request" || msg.type === "bring_request";
+          const isSpecial = msg.type === "bring_request";
           return (
             <div
               key={msg.id}
@@ -537,9 +536,7 @@ function ConversationView({
                     : "bg-cream text-ink rounded-bl-sm"
                 }`}
               >
-                {msg.type === "vipps_request"
-                  ? "Sendte en Vipps-betalingsforespørsel"
-                  : msg.type === "bring_request"
+                {msg.type === "bring_request"
                   ? "Sendte en Bring-fraktforespørsel"
                   : msg.content}
               </div>
@@ -781,6 +778,7 @@ function AnnonserTab({ profile }: { profile: UserProfile }) {
 
 function StripeConnectCard({ profile }: { profile: UserProfile }) {
   const [loading, setLoading] = useState(false);
+  const [dashLoading, setDashLoading] = useState(false);
 
   async function handleConnect() {
     setLoading(true);
@@ -795,6 +793,19 @@ function StripeConnectCard({ profile }: { profile: UserProfile }) {
     else setLoading(false);
   }
 
+  async function handleDashboard() {
+    setDashLoading(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setDashLoading(false); return; }
+    const res = await fetch("/api/stripe/dashboard-link", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${session.access_token}` },
+    });
+    const json = await res.json();
+    if (json.url) window.open(json.url, "_blank");
+    setDashLoading(false);
+  }
+
   const isConnected = profile.stripe_account_id && profile.stripe_onboarding_complete;
   const isPending = profile.stripe_account_id && !profile.stripe_onboarding_complete;
 
@@ -804,11 +815,20 @@ function StripeConnectCard({ profile }: { profile: UserProfile }) {
       <p className="text-xs text-ink-light mb-4">La kjøpere betale direkte med kort. Du mottar pengene direkte fra Stripe.</p>
 
       {isConnected ? (
-        <div className="flex items-center gap-2 rounded-lg bg-forest-light px-4 py-3">
-          <svg className="h-4 w-4 text-forest flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
-          <span className="text-sm font-medium text-forest">Stripe aktivert — kjøpere kan betale med kort</span>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 rounded-lg bg-forest-light px-4 py-3">
+            <svg className="h-4 w-4 text-forest flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+            <span className="text-sm font-medium text-forest">Stripe aktivert — kjøpere kan betale med kort</span>
+          </div>
+          <button
+            onClick={handleDashboard}
+            disabled={dashLoading}
+            className="w-full rounded-lg border border-border py-2.5 text-sm font-semibold text-ink hover:bg-cream transition-colors disabled:opacity-50"
+          >
+            {dashLoading ? "Åpner..." : "Se inntekter og utbetalinger →"}
+          </button>
         </div>
       ) : isPending ? (
         <div className="space-y-3">
@@ -970,22 +990,6 @@ function ProfilTab({
           />
         </div>
 
-        {/* VIPPS_HIDDEN: remove false && to re-enable Vipps phone field */}
-        {false && (
-          <div>
-            <label className="block text-xs font-medium text-ink mb-1.5">Vipps-nummer</label>
-            <input
-              type="tel"
-              value={form.vipps_phone}
-              onChange={(e) => setForm((f) => ({ ...f, vipps_phone: e.target.value }))}
-              placeholder="40012345"
-              className="w-full rounded-lg border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
-            />
-            <p className="mt-1 text-xs text-ink-light">
-              Brukes for Vipps-betaling når noen kjøper dine annonser
-            </p>
-          </div>
-        )}
 
         {error && <p className="text-xs text-red-500">{error}</p>}
 

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { stripe } from "@/lib/stripe";
+import { buildEmail, p, infoBox, escapeHtml, FROM, SITE_URL } from "@/lib/email";
 import type Stripe from "stripe";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const admin = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,18 +34,19 @@ export async function POST(req: NextRequest) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       const listingId = Number(session.metadata?.listing_id);
+      const buyerAuthId = session.metadata?.buyer_auth_id ?? null;
       if (!listingId) break;
 
-      // Mark listing as sold
       await admin.from("listings").update({ is_sold: true }).eq("id", listingId);
 
-      // Increment seller's total_sold
       const { data: listing } = await admin
         .from("listings")
-        .select("seller_id")
+        .select("seller_id, title, price")
         .eq("id", listingId)
         .single();
+
       if (listing) {
+        // Increment seller's total_sold
         const { data: profile } = await admin
           .from("profiles")
           .select("total_sold")
@@ -52,6 +57,44 @@ export async function POST(req: NextRequest) {
             .from("profiles")
             .update({ total_sold: profile.total_sold + 1 })
             .eq("id", listing.seller_id);
+        }
+
+        // Notify seller via email
+        fetch(`${SITE_URL}/api/notify-listing`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-webhook-secret": process.env.NOTIFY_WEBHOOK_SECRET ?? "",
+          },
+          body: JSON.stringify({ type: "sold", listing_id: listingId }),
+        }).catch(() => {});
+
+        // Buyer confirmation email
+        if (buyerAuthId) {
+          const { data: buyerAuth } = await admin.auth.admin.getUserById(buyerAuthId);
+          const buyerEmail = buyerAuth.user?.email;
+          if (buyerEmail) {
+            const listingUrl = `${SITE_URL}/annonse/${listingId}`;
+            const safeTitle = escapeHtml(listing.title);
+            const price = listing.price.toLocaleString("nb-NO");
+            const html = buildEmail({
+              heading: "Betaling bekreftet!",
+              kicker: "Kjøp gjennomført",
+              body: `
+                ${p("Takk for kjøpet ditt på Sportsbytte!")}
+                ${infoBox(`${safeTitle}\n${price} kr`, "Din ordre")}
+                ${p("Selgeren vil kontakte deg for å avtale levering. Du kan også sende en melding direkte i appen.")}
+              `,
+              cta: { href: listingUrl, label: "Se annonsen" },
+              footerNote: "Du mottar denne e-posten fordi du fullførte et kjøp på Sportsbytte.",
+            });
+            resend.emails.send({
+              from: FROM,
+              to: buyerEmail,
+              subject: `Betaling bekreftet: ${listing.title}`,
+              html,
+            }).catch(() => {});
+          }
         }
       }
       break;
