@@ -1,5 +1,11 @@
-import { supabase } from "./supabase";
-import type { Tables } from "./database.types";
+import { createClient } from "@supabase/supabase-js";
+import type { Database, Tables } from "./database.types";
+
+// Plain anon client — safe for server components, fetches public data only
+const supabase = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 // Re-export row types for convenience
 export type Club = Tables<"clubs">;
