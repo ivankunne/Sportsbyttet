@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import {
   getProfileBySlug,
   getReviewsByProfile,
@@ -66,9 +67,19 @@ export default async function ProfilePage({ params }: Props) {
       {/* Profile header */}
       <div className="bg-white rounded-2xl p-6 sm:p-8 border border-border mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-          <div className="h-20 w-20 rounded-full bg-forest-light flex items-center justify-center text-forest font-bold text-2xl font-display">
-            {seller.avatar}
-          </div>
+          {seller.avatar_url ? (
+            <Image
+              src={seller.avatar_url}
+              alt={seller.name}
+              width={80}
+              height={80}
+              className="h-20 w-20 rounded-full object-cover"
+            />
+          ) : (
+            <div className="h-20 w-20 rounded-full bg-forest-light flex items-center justify-center text-forest font-bold text-2xl font-display">
+              {seller.avatar}
+            </div>
+          )}
 
           <div className="flex-1">
             <div className="flex items-center gap-3">

@@ -22,13 +22,14 @@ type Props = {
 };
 
 export function AuthForm({ onSuccess, initialMode = "login" }: Props) {
-  const [mode, setMode] = useState<"login" | "signup">(initialMode);
+  const [mode, setMode] = useState<"login" | "signup" | "forgot">(initialMode);
   const [form, setForm] = useState({ email: "", password: "", name: "" });
   const [clubSearch, setClubSearch] = useState("");
   const [allClubs, setAllClubs] = useState<Club[]>([]);
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   // Fetch clubs once when entering signup mode
   useEffect(() => {
@@ -49,6 +50,23 @@ export function AuthForm({ onSuccess, initialMode = "login" }: Props) {
           )
           .slice(0, 5)
       : [];
+
+  async function handleForgotPassword() {
+    setError("");
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        form.email.trim(),
+        { redirectTo: `${window.location.origin}/tilbakestill-passord` }
+      );
+      if (error) throw error;
+      setResetSent(true);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Noe gikk galt");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleSubmit() {
     setError("");
@@ -147,6 +165,54 @@ export function AuthForm({ onSuccess, initialMode = "login" }: Props) {
     window.location.href = `/api/auth/vipps/start?returnTo=${encodeURIComponent(returnTo)}`;
   }
 
+  if (mode === "forgot") {
+    return (
+      <div className="space-y-3">
+        {resetSent ? (
+          <div className="rounded-lg bg-forest-light p-4 text-center">
+            <p className="text-sm font-medium text-forest">E-post sendt!</p>
+            <p className="mt-1 text-xs text-ink-light">
+              Sjekk innboksen din for en lenke for å tilbakestille passordet.
+            </p>
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-ink-light">
+              Skriv inn e-postadressen din, så sender vi en tilbakestillingslenke.
+            </p>
+            <div>
+              <label className="block text-xs font-medium text-ink mb-1.5">E-post</label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                onKeyDown={(e) => e.key === "Enter" && handleForgotPassword()}
+                placeholder="deg@epost.no"
+                className="w-full rounded-lg border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest"
+              />
+            </div>
+            {error && <p className="text-xs text-red-500">{error}</p>}
+            <button
+              onClick={handleForgotPassword}
+              disabled={loading || !form.email.trim()}
+              className="w-full rounded-lg bg-forest py-2.5 text-sm font-semibold text-white hover:bg-forest-mid transition-colors duration-[120ms] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Sender..." : "Send tilbakestillingslenke"}
+            </button>
+          </>
+        )}
+        <p className="text-center text-sm text-ink-light">
+          <button
+            onClick={() => { setMode("login"); setError(""); setResetSent(false); }}
+            className="font-semibold text-forest hover:underline"
+          >
+            Tilbake til innlogging
+          </button>
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       {/* Vipps Login */}
@@ -195,9 +261,17 @@ export function AuthForm({ onSuccess, initialMode = "login" }: Props) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-ink mb-1.5">
-          Passord
-        </label>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="block text-xs font-medium text-ink">Passord</label>
+          {mode === "login" && (
+            <button
+              onClick={() => { setMode("forgot"); setError(""); }}
+              className="text-xs text-forest hover:underline"
+            >
+              Glemt passord?
+            </button>
+          )}
+        </div>
         <input
           type="password"
           value={form.password}
