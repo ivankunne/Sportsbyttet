@@ -155,11 +155,14 @@ export default function PricingPage() {
           </ul>
 
           <Link
-            href="/kontakt"
+            href="/klubber"
             className="mt-8 block w-full rounded-lg bg-amber py-2.5 text-center text-sm font-semibold text-white hover:brightness-95 transition-all duration-[120ms]"
           >
-            Ta kontakt for Pro
+            Oppgrader din klubb
           </Link>
+          <p className="mt-2 text-center text-xs text-ink-light">
+            Logg inn på klubbens adminpanel for å oppgradere
+          </p>
         </div>
       </div>
 

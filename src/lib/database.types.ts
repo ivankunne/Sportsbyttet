@@ -152,6 +152,8 @@ export type Database = {
           rating: number
           secondary_color: string | null
           slug: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           total_sold: number
           updated_at: string
         }
@@ -166,6 +168,8 @@ export type Database = {
           is_membership_gated?: boolean
           is_pro?: boolean
           logo_url?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           member_email_domain?: string | null
           members?: number
           name: string
@@ -192,6 +196,8 @@ export type Database = {
           rating?: number
           secondary_color?: string | null
           slug?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           total_sold?: number
           updated_at?: string
         }

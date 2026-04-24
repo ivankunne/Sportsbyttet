@@ -33,6 +33,21 @@ export async function POST(req: NextRequest) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
+
+      // ── Pro subscription purchase ──────────────────────
+      if (session.mode === "subscription" && session.metadata?.type === "pro_subscription") {
+        const clubId = Number(session.metadata.club_id);
+        if (clubId) {
+          await admin.from("clubs").update({
+            is_pro: true,
+            stripe_subscription_id: String(session.subscription ?? ""),
+            stripe_customer_id: String(session.customer ?? ""),
+          }).eq("id", clubId);
+        }
+        break;
+      }
+
+      // ── Listing payment ────────────────────────────────
       const listingId = Number(session.metadata?.listing_id);
       const buyerAuthId = session.metadata?.buyer_auth_id ?? null;
       if (!listingId) break;
@@ -108,6 +123,15 @@ export async function POST(req: NextRequest) {
           .update({ stripe_onboarding_complete: true })
           .eq("stripe_account_id", account.id);
       }
+      break;
+    }
+
+    case "customer.subscription.deleted": {
+      const sub = event.data.object as Stripe.Subscription;
+      await admin
+        .from("clubs")
+        .update({ is_pro: false, stripe_subscription_id: null })
+        .eq("stripe_subscription_id", sub.id);
       break;
     }
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, type ChangeEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/lib/supabase";
@@ -319,9 +320,13 @@ export default function ClubAdminPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const searchParams = useSearchParams();
+  const proSuccess = searchParams.get("pro") === "success";
+
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
+  const [upgrading, setUpgrading] = useState(false);
   const [club, setClub] = useState<Club | null>(null);
   const [listings, setListings] = useState<ListingWithRelations[]>([]);
   const [sellers, setSellers] = useState<Profile[]>([]);
@@ -422,6 +427,28 @@ export default function ClubAdminPage({
       setAuthenticated(true);
     } else {
       setAuthError("Feil passord. Kontakt Sportsbytte for tilgang.");
+    }
+  }
+
+  async function handleUpgradePro() {
+    if (!club) return;
+    setUpgrading(true);
+    try {
+      const res = await fetch("/api/stripe/pro-subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-secret": _adminSecret },
+        body: JSON.stringify({ club_slug: slug }),
+      });
+      const { url, error } = await res.json();
+      if (url) {
+        window.location.href = url;
+      } else {
+        showError(error ?? "Kunne ikke starte betaling.");
+        setUpgrading(false);
+      }
+    } catch {
+      showError("Noe gikk galt. Prøv igjen.");
+      setUpgrading(false);
     }
   }
 
@@ -621,7 +648,7 @@ export default function ClubAdminPage({
       {/* ── Tab: Oversikt ── */}
       {activeTab === "oversikt" && (
         <div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
             {[
               { label: "Aktive annonser", value: activeListings.length.toString() },
               { label: "Totalt solgt", value: soldListings.length.toString() },
@@ -634,6 +661,54 @@ export default function ClubAdminPage({
               </div>
             ))}
           </div>
+
+          {/* Pro status / upgrade card */}
+          {proSuccess && (
+            <div className="mb-6 rounded-xl bg-forest-light border border-forest/20 px-5 py-4 flex items-center gap-3">
+              <svg className="h-5 w-5 text-forest flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <p className="text-sm font-medium text-forest">
+                Takk for kjøpet! Pro aktiveres innen et par minutter.
+              </p>
+            </div>
+          )}
+          {club.is_pro ? (
+            <div className="mb-6 rounded-xl bg-amber-light border border-amber/30 px-5 py-4 flex items-center gap-3">
+              <svg className="h-5 w-5 text-amber flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              <p className="text-sm font-semibold text-amber">Pro-plan aktiv — 2 % gebyr og prioritert synlighet</p>
+            </div>
+          ) : (
+            <div className="mb-6 rounded-xl border border-border bg-white overflow-hidden">
+              <div className="px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-display text-base font-semibold text-ink">Oppgrader til Pro</h3>
+                  <p className="text-sm text-ink-light mt-0.5">
+                    Lavere gebyr, prioritert synlighet og ubegrenset import — 499 kr/mnd
+                  </p>
+                </div>
+                <button
+                  onClick={handleUpgradePro}
+                  disabled={upgrading}
+                  className="flex-shrink-0 rounded-lg bg-amber px-5 py-2.5 text-sm font-semibold text-white hover:brightness-95 transition-all duration-[120ms] disabled:opacity-50"
+                >
+                  {upgrading ? "Åpner betaling..." : "Oppgrader — 499 kr/mnd"}
+                </button>
+              </div>
+              <div className="border-t border-border px-6 py-3 flex flex-wrap gap-x-6 gap-y-1">
+                {["2 % transaksjonsgebyr (vs. 5 %)", "Prioritert rekkefølge på /klubber", "Ubegrenset CSV-import"].map((f) => (
+                  <span key={f} className="flex items-center gap-1.5 text-xs text-ink-light">
+                    <svg className="h-3.5 w-3.5 text-amber flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                    </svg>
+                    {f}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 bg-white rounded-xl border border-border">
