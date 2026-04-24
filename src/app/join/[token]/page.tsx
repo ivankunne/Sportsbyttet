@@ -156,11 +156,6 @@ export default function JoinViaInvitePage({
         className="rounded-2xl px-8 py-10 text-center mb-8 relative overflow-hidden"
         style={{ backgroundColor: club.color }}
       >
-        {club.is_pro && (
-          <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-amber px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow">
-            Pro
-          </span>
-        )}
         {club.is_pro && club.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -179,11 +174,6 @@ export default function JoinViaInvitePage({
         </p>
         {club.description && (
           <p className="mt-2 text-sm text-white/80">{club.description}</p>
-        )}
-        {club.is_pro && (
-          <p className="mt-3 text-xs text-white/60">
-            Verifisert Pro-klubb på Sportsbytte
-          </p>
         )}
       </div>
 

@@ -708,7 +708,7 @@ function KlubberTab() {
                         {club.name}
                       </span>
                       {club.is_pro && (
-                        <span className="inline-flex items-center rounded-full bg-amber px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white flex-shrink-0">
+                        <span className="inline-flex items-center rounded-full bg-amber/20 border border-amber/40 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber flex-shrink-0">
                           Pro
                         </span>
                       )}
