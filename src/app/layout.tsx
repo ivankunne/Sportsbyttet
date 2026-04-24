@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Toaster } from "@/components/Toaster";
 import { MobileNav } from "@/components/MobileNav";
+import { CookieBanner } from "@/components/CookieBanner";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -81,6 +82,7 @@ export default function RootLayout({
         <Footer />
         <Toaster />
         <MobileNav />
+        <CookieBanner />
       </body>
     </html>
   );
