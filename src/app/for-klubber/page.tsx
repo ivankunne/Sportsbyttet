@@ -296,7 +296,7 @@ export default function ForKlubberPage() {
                 {
                   step: "2",
                   title: "Del invitasjonslenken",
-                  desc: "Send én lenke til medlemmene på e-post, WhatsApp eller i klubb-appen. Ingen CSV, ingen manuell import.",
+                  desc: "Send én lenke til medlemmene på e-post, WhatsApp eller i klubb-appen. Du kan også importere medlemmer via CSV.",
                 },
                 {
                   step: "3",
@@ -452,37 +452,34 @@ export default function ForKlubberPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* For klubben */}
+            {/* Klubb Basis */}
             <div className="border border-white/20 rounded-2xl p-8 bg-white/5">
               <h3 className="font-display text-xl font-semibold text-white">
-                For klubben
+                Klubb Basis
               </h3>
               <div className="mt-4 flex items-baseline gap-2">
                 <span className="font-display text-5xl font-bold text-white">
                   Gratis
                 </span>
               </div>
-              <p className="mt-1 text-sm text-white/60">Alltid</p>
+              <p className="mt-1 text-sm text-white/60">i åpningsperioden · ingen binding</p>
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-amber/40 bg-amber/10 px-3 py-1.5">
+                <span className="text-sm font-bold text-amber">5 %</span>
+                <span className="text-xs text-white/60">transaksjonsgebyr per salg</span>
+              </div>
 
-              <ul className="mt-8 space-y-3">
+              <ul className="mt-6 space-y-3">
                 {[
-                  "Klubbside med merkevare",
+                  "Klubbside med logo og farger",
                   "Ubegrenset antall annonser",
-                  "Statistikk og innsikt",
-                  "Invitasjonslenke til medlemmer",
+                  "Analysetavle for admin",
+                  "Invitasjonslenke + QR-kode",
+                  "CSV-import (maks 20 per gang)",
                   "Digitalt byttemarked",
                 ].map((f) => (
                   <li key={f} className="flex items-start gap-2.5 text-sm text-white/80">
-                    <svg
-                      className="h-5 w-5 text-amber flex-shrink-0 mt-0.5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                        clipRule="evenodd"
-                      />
+                    <svg className="h-5 w-5 text-amber flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
                     </svg>
                     {f}
                   </li>
@@ -497,35 +494,53 @@ export default function ForKlubberPage() {
               </Link>
             </div>
 
-            {/* Per transaksjon */}
-            <div className="border border-white/20 rounded-2xl p-8 bg-white/5">
+            {/* Klubb Pro */}
+            <div className="border-2 border-amber/50 rounded-2xl p-8 bg-white/5 relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="rounded-full bg-amber px-4 py-1 text-xs font-bold text-white">Pro</span>
+              </div>
               <h3 className="font-display text-xl font-semibold text-white">
-                Per transaksjon
+                Klubb Pro
               </h3>
               <div className="mt-4 flex items-baseline gap-2">
-                <span className="font-display text-5xl font-bold text-white">
-                  Lav&nbsp;%
-                </span>
+                <span className="font-display text-5xl font-bold text-white">499 kr</span>
+                <span className="text-sm text-white/60">/mnd</span>
               </div>
-              <p className="mt-1 text-sm text-white/60">Kun når noe selges</p>
-
-              <p className="mt-8 text-sm text-white/70 leading-relaxed">
-                Selger beholder nesten alt. Vi tar kun en liten plattformavgift
-                per gjennomført salg for å dekke Stripe og Bring-integrasjon.
-              </p>
-
-              <div className="mt-6 inline-block rounded-full border border-amber/50 bg-amber/10 px-4 py-1.5 text-xs font-semibold text-amber">
-                Eksakt sats kunngjøres ved lansering
+              <p className="mt-1 text-sm text-white/60">faktureres månedlig</p>
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-amber/40 bg-amber/10 px-3 py-1.5">
+                <span className="text-sm font-bold text-amber">2 %</span>
+                <span className="text-xs text-white/60">transaksjonsgebyr per salg</span>
               </div>
 
-              <div className="mt-8 rounded-xl bg-white/10 p-5">
-                <p className="text-sm text-white/70 leading-relaxed">
-                  Avgiften dekker sikker kortbetaling via Stripe, Bring-fraktlabel og
-                  kjøperbeskyttelse. Ingen skjulte kostnader for klubben.
-                </p>
-              </div>
+              <ul className="mt-6 space-y-3">
+                {[
+                  "Alt i Basis",
+                  "Kun 2 % transaksjonsgebyr (vs. 5 %)",
+                  "Prioritert synlighet på /klubber",
+                  "Ubegrenset CSV-import",
+                  "Utvidet analysetavle",
+                  "Dedikert støtte",
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-sm text-white/80">
+                    <svg className="h-5 w-5 text-amber flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                    </svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href="/priser"
+                className="mt-8 block w-full rounded-lg bg-amber py-3 text-center text-sm font-semibold text-white hover:brightness-110 transition-all duration-[120ms]"
+              >
+                Se alle priser
+              </Link>
             </div>
           </div>
+          <p className="mt-6 text-center text-sm text-white/50">
+            Transaksjonsgebyret betales av selger ved gjennomført salg — ikke av klubben.
+          </p>
         </div>
       </section>
 
@@ -540,7 +555,7 @@ export default function ForKlubberPage() {
             {[
               {
                 q: "Koster det noe for klubben?",
-                a: "Nei. Det er gratis å opprette og drive en klubbside på Sportsbytte. Vi tar kun en liten plattformavgift per gjennomført transaksjon — den betales av kjøper eller deles med selger.",
+                a: "Nei. Det er gratis å opprette og drive en klubbside på Sportsbytte (Basis-plan). Vi tar 5 % av salgsprisen per gjennomført salg — dette betales av selger, ikke av klubben. Klubb Pro koster 499 kr/mnd og gir kun 2 % gebyr.",
               },
               {
                 q: "Hvem kan registrere klubben?",
