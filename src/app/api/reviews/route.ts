@@ -56,11 +56,24 @@ export async function POST(req: NextRequest) {
     .single();
   if (!targetProfile) return NextResponse.json({ error: "Profil ikke funnet" }, { status: 404 });
 
+  // Prevent duplicate reviews from the same reviewer
+  const { data: existing } = await admin
+    .from("reviews")
+    .select("id")
+    .eq("profile_id", profile_id)
+    .eq("reviewer_id", reviewerProfile.id)
+    .limit(1)
+    .maybeSingle();
+  if (existing) {
+    return NextResponse.json({ error: "already_reviewed" }, { status: 409 });
+  }
+
   const { error: insertError } = await admin.from("reviews").insert({
     profile_id,
     rating,
     text: text?.trim() ?? "",
-    author_name: reviewerProfile.name, // always from verified profile, never from client
+    author_name: reviewerProfile.name,
+    reviewer_id: reviewerProfile.id,
   });
 
   if (insertError) return NextResponse.json({ error: "Intern feil" }, { status: 500 });

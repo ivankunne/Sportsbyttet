@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createMembershipRequest } from "@/lib/queries";
 import { contrastColor } from "@/lib/color";
 
 type Props = {
@@ -20,11 +19,7 @@ export function JoinClubButton({ clubId, clubName, isMembershipGated, memberEmai
   const [error, setError] = useState("");
 
   const normalizedDomain = memberEmailDomain?.replace(/^@/, "").toLowerCase();
-
-  function resolveStatus(): "pending" | "approved" {
-    if (!normalizedDomain) return "pending";
-    return form.email.toLowerCase().endsWith(`@${normalizedDomain}`) ? "approved" : "pending";
-  }
+  const [approvedStatus, setApprovedStatus] = useState<"pending" | "approved" | null>(null);
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
@@ -32,11 +27,18 @@ export function JoinClubButton({ clubId, clubName, isMembershipGated, memberEmai
     setSubmitting(true);
     setError("");
     try {
-      await createMembershipRequest(clubId, form.name, form.message || undefined, resolveStatus());
+      const res = await fetch("/api/join-club", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clubId, name: form.name, email: form.email || undefined, message: form.message || undefined }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Noe gikk galt");
+      setApprovedStatus(json.status);
       setSubmitted(true);
       setOpen(false);
-    } catch {
-      setError("Noe gikk galt. Prøv igjen.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Noe gikk galt. Prøv igjen.");
     }
     setSubmitting(false);
   }
@@ -44,7 +46,7 @@ export function JoinClubButton({ clubId, clubName, isMembershipGated, memberEmai
   if (submitted) {
     return (
       <div className="rounded-lg bg-white/20 px-5 py-2 text-sm font-medium text-white backdrop-blur-sm">
-        {resolveStatus() === "approved" ? "Velkommen!" : "Søknad sendt"}
+        {approvedStatus === "approved" ? "Velkommen!" : "Søknad sendt"}
       </div>
     );
   }

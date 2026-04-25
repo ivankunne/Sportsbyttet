@@ -101,12 +101,12 @@ export async function POST(req: NextRequest) {
 
       const { data: listing } = await admin
         .from("listings")
-        .select("seller_id, title, price")
+        .select("seller_id, title, price, club_id")
         .eq("id", listingId)
         .single();
 
       if (listing) {
-        // Increment seller's total_sold
+        // Increment seller's total_sold and update club counters
         const { data: profile } = await admin
           .from("profiles")
           .select("total_sold")
@@ -117,6 +117,19 @@ export async function POST(req: NextRequest) {
             .from("profiles")
             .update({ total_sold: profile.total_sold + 1 })
             .eq("id", listing.seller_id);
+        }
+
+        // Keep club stats in sync
+        const { data: club } = await admin
+          .from("clubs")
+          .select("total_sold, active_listings")
+          .eq("id", listing.club_id)
+          .single();
+        if (club) {
+          await admin.from("clubs").update({
+            total_sold: club.total_sold + 1,
+            active_listings: Math.max(0, club.active_listings - 1),
+          }).eq("id", listing.club_id);
         }
 
         // Notify seller via email

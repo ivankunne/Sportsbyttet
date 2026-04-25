@@ -413,6 +413,7 @@ export type Database = {
           id: number
           profile_id: number
           rating: number
+          reviewer_id: number | null
           text: string
         }
         Insert: {
@@ -421,6 +422,7 @@ export type Database = {
           id?: never
           profile_id: number
           rating: number
+          reviewer_id?: number | null
           text: string
         }
         Update: {
@@ -429,6 +431,7 @@ export type Database = {
           id?: never
           profile_id?: number
           rating?: number
+          reviewer_id?: number | null
           text?: string
         }
         Relationships: [

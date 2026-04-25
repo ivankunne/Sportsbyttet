@@ -75,6 +75,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Intern feil" }, { status: 500 });
   }
 
+  // Keep club active_listings count in sync
+  if (filtered.club_id) {
+    const { data: club } = await supabase
+      .from("clubs")
+      .select("active_listings")
+      .eq("id", filtered.club_id as number)
+      .single();
+    if (club) {
+      await supabase
+        .from("clubs")
+        .update({ active_listings: club.active_listings + 1 })
+        .eq("id", filtered.club_id as number);
+    }
+  }
+
   fetch(`${SITE_URL}/api/notify-listing`, {
     method: "POST",
     headers: {

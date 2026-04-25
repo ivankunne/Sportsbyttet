@@ -32,14 +32,6 @@ export function ListingDetail({ id }: { id: string }) {
   const [ratingLoading, setRatingLoading] = useState(false);
   const shareRef = useRef<HTMLDivElement>(null);
 
-  // Check localStorage to see if user already submitted a review for this listing
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const key = `reviewed_listing_${id}`;
-      if (localStorage.getItem(key) === "1") setRatingSubmitted(true);
-    }
-  }, [id]);
-
   // Close share dropdown on outside click
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -144,9 +136,17 @@ export function ListingDetail({ id }: { id: string }) {
           text: ratingComment,
         }),
       });
-      if (!res.ok) throw new Error();
+      const reviewRes = await res.json();
+      if (!res.ok) {
+        if (reviewRes.error === "already_reviewed") {
+          setRatingSubmitted(true);
+          showError("Du har allerede vurdert denne selgeren.");
+        } else {
+          throw new Error();
+        }
+        return;
+      }
       setRatingSubmitted(true);
-      localStorage.setItem(`reviewed_listing_${id}`, "1");
       showSuccess("Vurdering sendt! Takk for tilbakemeldingen.");
     } catch {
       showError("Kunne ikke sende vurdering. Prøv igjen.");
