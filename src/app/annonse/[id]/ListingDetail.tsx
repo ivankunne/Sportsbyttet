@@ -60,20 +60,22 @@ export function ListingDetail({ id }: { id: string }) {
       setListing(l);
       setIsSold(l.is_sold);
 
+      const cutoff = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
+      const soldFilter = `is_sold.eq.false,and(is_sold.eq.true,updated_at.gt.${cutoff})`;
       const [{ data: club }, { data: seller }] = await Promise.all([
         supabase
           .from("listings")
           .select("*, clubs(*), profiles(*)")
           .eq("club_id", l.club_id)
           .neq("id", l.id)
-          .eq("is_sold", false)
+          .or(soldFilter)
           .limit(4),
         supabase
           .from("listings")
           .select("*, clubs(*), profiles(*)")
           .eq("seller_id", l.seller_id)
           .neq("id", l.id)
-          .eq("is_sold", false)
+          .or(soldFilter)
           .limit(2),
       ]);
 

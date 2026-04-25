@@ -78,6 +78,12 @@ export async function getAllCategories(): Promise<Category[]> {
   return data;
 }
 
+// Sold listings stay visible for 5 days, then disappear from browse/search
+function soldVisibilityFilter() {
+  const cutoff = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
+  return `is_sold.eq.false,and(is_sold.eq.true,updated_at.gt.${cutoff})`;
+}
+
 // ─── Listings ───────────────────────────────────────────
 
 export async function getFeaturedListings(
@@ -86,7 +92,7 @@ export async function getFeaturedListings(
   const { data, error } = await supabase
     .from("listings")
     .select("*, clubs(*), profiles(*)")
-    .eq("is_sold", false)
+    .or(soldVisibilityFilter())
     .order("is_boosted", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -98,7 +104,7 @@ export async function getAllListings(): Promise<ListingWithRelations[]> {
   const { data, error } = await supabase
     .from("listings")
     .select("*, clubs(*), profiles(*)")
-    .eq("is_sold", false)
+    .or(soldVisibilityFilter())
     .order("is_boosted", { ascending: false })
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -112,7 +118,7 @@ export async function getListingsByClub(
     .from("listings")
     .select("*, clubs(*), profiles(*)")
     .eq("club_id", clubId)
-    .eq("is_sold", false)
+    .or(soldVisibilityFilter())
     .order("is_boosted", { ascending: false })
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -139,7 +145,7 @@ export async function getListingsBySeller(
     .from("listings")
     .select("*, clubs(*), profiles(*)")
     .eq("seller_id", sellerId)
-    .eq("is_sold", false)
+    .or(soldVisibilityFilter())
     .order("created_at", { ascending: false });
 
   if (excludeId) query = query.neq("id", excludeId);
@@ -218,7 +224,7 @@ export async function searchAll(query: string): Promise<SearchResults> {
       supabase
         .from("listings")
         .select("*, clubs(*), profiles(*)")
-        .eq("is_sold", false)
+        .or(soldVisibilityFilter())
         .or(`title.ilike.${pattern},category.ilike.${pattern},description.ilike.${pattern}`)
         .order("created_at", { ascending: false })
         .limit(20),
@@ -379,7 +385,7 @@ export async function searchListings(
   let q = supabase
     .from("listings")
     .select("*, clubs(*), profiles(*)")
-    .eq("is_sold", false);
+    .or(soldVisibilityFilter());
 
   if (clubId) q = q.eq("club_id", clubId);
 
