@@ -36,7 +36,7 @@ export default function SellPage() {
 
   const [listingType, setListingType] = useState<ListingType>("regular");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedShipping, setSelectedShipping] = useState("bring");
+  const [deliveryMethod, setDeliveryMethod] = useState("both");
   const [categories, setCategories] = useState<Category[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -211,6 +211,7 @@ export default function SellPage() {
           members_only: form.membersOnly,
           quantity: listingType === "bulk" ? parseInt(form.quantity || "2") : null,
           size_range: listingType === "bulk" ? form.sizeRange || null : null,
+          delivery_method: listingType === "iso" ? null : deliveryMethod,
           is_sold: false,
         }),
       });
@@ -602,30 +603,30 @@ export default function SellPage() {
               </label>
             </div>
 
-            {/* Shipping — skip for ISO */}
+            {/* Delivery method — skip for ISO */}
             {!isISO && (
               <div className="bg-white rounded-xl p-6">
-                <label className="block text-sm font-medium text-ink mb-3">Fraktvalg</label>
+                <label className="block text-sm font-medium text-ink mb-3">Leveringsmåte</label>
                 <div className="space-y-3">
                   {[
-                    { id: "bring", label: "Bring pakke", desc: "Fra 99 kr — label genereres automatisk" },
-                    { id: "local", label: "Hentes lokalt", desc: "Kjøper og selger avtaler sted" },
-                    { id: "both", label: "Begge deler", desc: "La kjøper velge frakt eller henting" },
+                    { id: "pickup", label: "Hentes av kjøper", desc: "Avtal sted og tidspunkt direkte" },
+                    { id: "shipping", label: "Kan sendes", desc: "Kjøper betaler frakt — avtal detaljer i meldinger" },
+                    { id: "both", label: "Begge deler", desc: "Henting eller sending — avtal med kjøper" },
                   ].map((option) => (
                     <label
                       key={option.id}
                       className={`flex items-start gap-3 p-4 rounded-lg cursor-pointer transition-colors duration-[120ms] ${
-                        selectedShipping === option.id
+                        deliveryMethod === option.id
                           ? "bg-forest-light border-2 border-forest"
                           : "bg-cream border-2 border-transparent hover:border-border"
                       }`}
                     >
                       <input
                         type="radio"
-                        name="shipping"
+                        name="delivery"
                         value={option.id}
-                        checked={selectedShipping === option.id}
-                        onChange={(e) => setSelectedShipping(e.target.value)}
+                        checked={deliveryMethod === option.id}
+                        onChange={(e) => setDeliveryMethod(e.target.value)}
                         className="mt-0.5 accent-forest"
                       />
                       <div>
@@ -664,7 +665,7 @@ export default function SellPage() {
               : "Publiser annonse"}
           </button>
           <p className="mt-4 text-center text-xs text-ink-light">
-            Trygg kortbetaling • Bring frakt integrert • Klubbbeskyttelse
+            Trygg kortbetaling • Selger og kjøper avtaler levering • Klubbbeskyttelse
           </p>
         </div>
       </div>

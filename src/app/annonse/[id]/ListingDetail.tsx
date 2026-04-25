@@ -374,24 +374,36 @@ export function ListingDetail({ id }: { id: string }) {
                 </div>
               )}
 
-              {listing.listing_type !== "iso" && (
-                <>
+              {listing.listing_type !== "iso" && (() => {
+                const dm = listing.delivery_method;
+                const label =
+                  dm === "pickup" ? "Hentes av kjøper" :
+                  dm === "shipping" ? "Kan sendes" :
+                  "Henting eller sending";
+                const desc =
+                  dm === "pickup" ? "Avtal sted og tidspunkt med selger" :
+                  dm === "shipping" ? "Kjøper betaler frakt — avtal detaljer med selger" :
+                  "Avtal leveringsmåte direkte med selger";
+                const icon =
+                  dm === "pickup" ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm6 2.5a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  ) : dm === "shipping" ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0H21M3.375 14.25V3.375c0-.621.504-1.125 1.125-1.125h9.75c.621 0 1.125.504 1.125 1.125v1.5m0 0h3.375c.621 0 1.125.504 1.125 1.125v1.5M15.375 6v11.25" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                  );
+                return (
                   <div className="flex items-start gap-3 p-4 rounded-xl bg-cream text-sm">
                     <svg className="h-5 w-5 text-forest flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0H21M3.375 14.25V3.375c0-.621.504-1.125 1.125-1.125h9.75c.621 0 1.125.504 1.125 1.125v1.5m0 0h3.375c.621 0 1.125.504 1.125 1.125v1.5M15.375 6v11.25" />
+                      {icon}
                     </svg>
                     <div>
-                      <p className="font-medium text-ink flex items-center gap-1.5">
-                        Frakt med{" "}
-                        <Image src="/Bring_logo.svg.png" alt="Bring" width={40} height={14} className="h-3.5 w-auto inline-block" />
-                        {" "}fra 99 kr
-                      </p>
-                      <p className="text-ink-mid mt-0.5">Fraktlabel genereres automatisk etter kjøp</p>
+                      <p className="font-medium text-ink">{label}</p>
+                      <p className="text-ink-mid mt-0.5">{desc}</p>
                     </div>
                   </div>
-
-                </>
-              )}
+                );
+              })()}
             </div>
 
             {/* Seller card */}

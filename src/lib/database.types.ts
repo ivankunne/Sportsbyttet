@@ -211,6 +211,7 @@ export type Database = {
           created_at: string
           description: string | null
           boosted_until: string | null
+          delivery_method: string | null
           id: number
           images: string[]
           is_boosted: boolean
@@ -232,6 +233,7 @@ export type Database = {
           club_id: number
           condition: string
           created_at?: string
+          delivery_method?: string | null
           description?: string | null
           id?: never
           images?: string[]
@@ -254,6 +256,7 @@ export type Database = {
           club_id?: number
           condition?: string
           created_at?: string
+          delivery_method?: string | null
           description?: string | null
           id?: never
           images?: string[]

@@ -17,7 +17,7 @@ const anonClient = createClient(
 const ALLOWED_COLUMNS = [
   "title", "description", "category", "condition", "price",
   "images", "specs", "club_id", "listing_type", "members_only",
-  "quantity", "size_range", "is_sold",
+  "quantity", "size_range", "is_sold", "delivery_method",
 ] as const;
 
 export async function POST(req: NextRequest) {

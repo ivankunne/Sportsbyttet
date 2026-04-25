@@ -63,7 +63,7 @@ export default function PricingPage() {
                 "Opptil 8 bilder per annonse",
                 "Meldinger med kjøpere",
                 "Kortbetaling via Stripe",
-                "Bring-fraktlabel",
+                "Henting eller sending — avtal med kjøper",
                 "Kjøperbeskyttelse",
               ].map((f) => (
                 <li key={f} className="flex items-start gap-2 text-sm text-ink-light">
