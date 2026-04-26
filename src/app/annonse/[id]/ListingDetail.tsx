@@ -62,6 +62,13 @@ export function ListingDetail({ id }: { id: string }) {
       setListing(l);
       setIsSold(l.is_sold);
 
+      // Fire-and-forget view increment
+      fetch("/api/listing-view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listing_id: Number(id) }),
+      }).catch(() => {});
+
       // Check members_only access
       if (l.members_only && l.club_id) {
         setIsMembersOnly(true);
@@ -327,7 +334,10 @@ export function ListingDetail({ id }: { id: string }) {
                 <span className="text-lg text-ink-mid">kr</span>
               </div>
               {listing.listing_type === "bulk" && listing.quantity !== null && listing.quantity > 0 && (
-                <p className="text-xs text-ink-light mb-5">{listing.quantity} igjen på lager</p>
+                <p className="text-xs text-ink-light mb-1">{listing.quantity} igjen på lager</p>
+              )}
+              {listing.listing_type === "bulk" && listing.size_range && (
+                <p className="text-xs text-ink-light mb-5">Størrelser: {listing.size_range}</p>
               )}
 
               {isSold ? (

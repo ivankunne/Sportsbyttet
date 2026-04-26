@@ -47,13 +47,6 @@ export function ListingChat({
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [starting, setStarting] = useState(false);
-  const [showBringForm, setShowBringForm] = useState(false);
-  const [bringPostal, setBringPostal] = useState("");
-  const [bringWeightGrams, setBringWeightGrams] = useState("2000");
-  const [bringProducts, setBringProducts] = useState<{ id: string; name: string; price: number; deliveryDate: string | null }[]>([]);
-  const [bringSelectedId, setBringSelectedId] = useState("");
-  const [bringLoading, setBringLoading] = useState(false);
-  const [bringError, setBringError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -275,51 +268,6 @@ export function ListingChat({
     }
   }
 
-  async function fetchBringPrices() {
-    if (!/^\d{4}$/.test(bringPostal)) {
-      setBringError("Skriv inn et gyldig 4-sifret postnummer");
-      return;
-    }
-    setBringLoading(true);
-    setBringError("");
-    setBringProducts([]);
-    setBringSelectedId("");
-    try {
-      const res = await fetch(
-        `/api/bring/price?toPostal=${bringPostal}&weightGrams=${bringWeightGrams}`
-      );
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        setBringError(data.error ?? "Kunne ikke hente fraktpriser");
-        return;
-      }
-      if (!data.products?.length) {
-        setBringError("Ingen fraktalternativer funnet for dette postnummeret");
-        return;
-      }
-      setBringProducts(data.products);
-      setBringSelectedId(data.products[0].id);
-    } catch {
-      setBringError("Nettverksfeil. Prøv igjen.");
-    } finally {
-      setBringLoading(false);
-    }
-  }
-
-  async function sendBringRequest() {
-    const selected = bringProducts.find((p) => p.id === bringSelectedId);
-    if (!selected) return;
-    const weightLabel = { "500": "under 0,5 kg", "2000": "under 2 kg", "5000": "under 5 kg", "10000": "under 10 kg" }[bringWeightGrams] ?? "";
-    await sendMessage(
-      `Ønsker å motta varen med Bring.\nTjeneste: ${selected.name}\nEstimert fraktkostnad: ${selected.price.toLocaleString("nb-NO")} kr\nVekt: ${weightLabel}\nLeveringspostnummer: ${bringPostal}`,
-      "bring_request",
-      { service_id: selected.id, price: selected.price, postal: bringPostal, weight_grams: Number(bringWeightGrams) } as Json
-    );
-    setShowBringForm(false);
-    setBringPostal("");
-    setBringProducts([]);
-    setBringSelectedId("");
-  }
 
   if (!open) return null;
 
@@ -454,129 +402,6 @@ export function ListingChat({
                 />
               ))}
               <div ref={messagesEndRef} />
-            </div>
-
-            {/* Bring shipping form */}
-            {showBringForm && (
-              <div className="px-4 py-3 border-t border-border bg-cream flex-shrink-0 space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-ink uppercase tracking-wide">Send med Bring</p>
-                  <button
-                    onClick={() => { setShowBringForm(false); setBringProducts([]); setBringError(""); }}
-                    className="text-ink-light hover:text-ink transition-colors"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <label className="block text-[10px] font-medium text-ink-light mb-1">Ditt postnummer</label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={4}
-                      value={bringPostal}
-                      onChange={(e) => { setBringPostal(e.target.value.replace(/\D/g, "")); setBringProducts([]); }}
-                      onKeyDown={(e) => e.key === "Enter" && fetchBringPrices()}
-                      placeholder="5003"
-                      autoFocus
-                      className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest bg-white"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-[10px] font-medium text-ink-light mb-1">Vekt</label>
-                    <select
-                      value={bringWeightGrams}
-                      onChange={(e) => { setBringWeightGrams(e.target.value); setBringProducts([]); }}
-                      className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest bg-white"
-                    >
-                      <option value="500">Under 0,5 kg</option>
-                      <option value="2000">Under 2 kg</option>
-                      <option value="5000">Under 5 kg</option>
-                      <option value="10000">Under 10 kg</option>
-                    </select>
-                  </div>
-                </div>
-
-                {bringError && <p className="text-xs text-red-500">{bringError}</p>}
-
-                {bringProducts.length === 0 ? (
-                  <button
-                    onClick={fetchBringPrices}
-                    disabled={bringLoading || bringPostal.length !== 4}
-                    className="w-full rounded-lg bg-[#CC0000] py-2 text-sm font-semibold text-white hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {bringLoading ? "Henter priser..." : "Sjekk fraktpris"}
-                  </button>
-                ) : (
-                  <>
-                    <div className="space-y-1.5">
-                      {bringProducts.map((p) => (
-                        <label
-                          key={p.id}
-                          className={`flex items-center gap-3 rounded-lg border-2 px-3 py-2.5 cursor-pointer transition-colors ${
-                            bringSelectedId === p.id
-                              ? "border-[#CC0000] bg-red-50"
-                              : "border-border bg-white hover:border-[#CC0000]/40"
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="bring-service"
-                            value={p.id}
-                            checked={bringSelectedId === p.id}
-                            onChange={() => setBringSelectedId(p.id)}
-                            className="accent-[#CC0000]"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-ink">{p.name}</p>
-                            {p.deliveryDate && (
-                              <p className="text-xs text-ink-light">Levering: {p.deliveryDate}</p>
-                            )}
-                          </div>
-                          <span className="text-sm font-bold text-ink flex-shrink-0">
-                            {p.price.toLocaleString("nb-NO")} kr
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                    <p className="text-[10px] text-ink-light">Estimert pris — endelig kostnad settes av selger ved booking.</p>
-                    <button
-                      onClick={sendBringRequest}
-                      disabled={!bringSelectedId || sending}
-                      className="w-full rounded-lg bg-[#CC0000] py-2 text-sm font-semibold text-white hover:brightness-110 transition-all disabled:opacity-50"
-                    >
-                      Send fraktforespørsel
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Quick action buttons */}
-            <div className="px-4 pt-2 pb-1 flex gap-2 flex-shrink-0 overflow-x-auto">
-              <button
-                onClick={() => setShowBringForm((v) => !v)}
-                className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-ink-mid hover:bg-cream transition-colors duration-[120ms]"
-              >
-                <svg
-                  className="h-3.5 w-3.5 flex-shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"
-                  />
-                </svg>
-                Send med Bring
-              </button>
             </div>
 
             {/* Text input */}

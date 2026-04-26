@@ -45,45 +45,19 @@ export default function JoinViaInvitePage({
     setError("");
 
     try {
-      // Find or create profile
-      let profileId: number;
-      const { data: existing } = await supabase
-        .from("profiles")
-        .select("id")
-        .ilike("name", form.name.trim())
-        .limit(1)
-        .maybeSingle();
-
-      if (existing) {
-        profileId = existing.id;
-      } else {
-        const slug =
-          form.name.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") +
-          "-" +
-          Date.now();
-        const { data: newProfile, error: profileErr } = await supabase
-          .from("profiles")
-          .insert({
-            name: form.name.trim(),
-            slug,
-            avatar: form.name.trim().slice(0, 2).toUpperCase(),
-            club_id: club.id,
-          })
-          .select("id")
-          .single();
-        if (profileErr) throw profileErr;
-        profileId = newProfile.id;
-      }
-
-      // Invite link always auto-approves
-      const { error: memberErr } = await supabase.from("memberships").upsert({
-        club_id: club.id,
-        profile_id: profileId,
-        status: "approved",
-        message: form.message.trim() || null,
+      const { token } = await params;
+      const res = await fetch("/api/join-invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          name: form.name.trim(),
+          email: form.email || undefined,
+          message: form.message.trim() || undefined,
+        }),
       });
-      if (memberErr) throw memberErr;
-
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Noe gikk galt");
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Noe gikk galt. Prøv igjen.");

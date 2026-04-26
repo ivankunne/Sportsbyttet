@@ -359,16 +359,17 @@ export async function createSavedSearch(params: {
   maxPrice?: number;
   sizeHint?: string;
   clubId?: number;
-}): Promise<void> {
-  const { error } = await supabase.from("saved_searches").insert({
+}): Promise<number> {
+  const { data, error } = await supabase.from("saved_searches").insert({
     notify_email: params.notifyEmail,
     keywords: params.keywords ?? null,
     category: params.category ?? null,
     max_price: params.maxPrice ?? null,
     size_hint: params.sizeHint ?? null,
     club_id: params.clubId ?? null,
-  });
+  }).select("id").single();
   if (error) throw error;
+  return data.id;
 }
 
 // ─── Search ─────────────────────────────────────────────

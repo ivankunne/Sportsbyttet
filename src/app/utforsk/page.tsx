@@ -102,7 +102,7 @@ function ExplorePage() {
 
       if (debouncedQuery.trim()) {
         const p = `%${debouncedQuery.trim()}%`;
-        q = q.or(`title.ilike.${p},description.ilike.${p}`);
+        q = q.or(`title.ilike.${p},description.ilike.${p},size_range.ilike.${p}`);
       }
 
       if (activeCategory) {

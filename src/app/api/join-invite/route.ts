@@ -8,36 +8,25 @@ const admin = createClient<Database>(
 );
 
 export async function POST(req: NextRequest) {
-  let body: { clubId: number; name: string; email?: string; message?: string };
+  let body: { token: string; name: string; email?: string; message?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Ugyldig JSON" }, { status: 400 });
   }
 
-  const { clubId, name, email, message } = body;
-
-  if (!clubId || !name?.trim()) {
+  const { token, name, email, message } = body;
+  if (!token || !name?.trim()) {
     return NextResponse.json({ error: "Mangler påkrevde felt" }, { status: 400 });
   }
 
-  // Fetch club to get email domain setting — server-side, can't be spoofed by client
   const { data: club } = await admin
     .from("clubs")
-    .select("id, member_email_domain")
-    .eq("id", clubId)
+    .select("id, invite_token, members")
+    .eq("invite_token", token)
     .single();
+  if (!club) return NextResponse.json({ error: "Ugyldig invitasjonslenke" }, { status: 404 });
 
-  if (!club) return NextResponse.json({ error: "Klubb ikke funnet" }, { status: 404 });
-
-  // Compute status server-side — client never sends it
-  const normalizedDomain = club.member_email_domain?.replace(/^@/, "").toLowerCase();
-  const status: "pending" | "approved" =
-    normalizedDomain && email?.toLowerCase().endsWith(`@${normalizedDomain}`)
-      ? "approved"
-      : "pending";
-
-  // Find or create a profile by name
   let { data: profile } = await admin
     .from("profiles")
     .select("id")
@@ -52,7 +41,7 @@ export async function POST(req: NextRequest) {
       Date.now().toString(36);
     const { data: newProfile, error } = await admin
       .from("profiles")
-      .insert({ name: name.trim(), slug, avatar: name.trim().slice(0, 2).toUpperCase() })
+      .insert({ name: name.trim(), slug, avatar: name.trim().slice(0, 2).toUpperCase(), club_id: club.id })
       .select("id")
       .single();
     if (error) return NextResponse.json({ error: "Intern feil" }, { status: 500 });
@@ -62,25 +51,21 @@ export async function POST(req: NextRequest) {
   const { data: existing } = await admin
     .from("memberships")
     .select("status")
-    .eq("club_id", clubId)
+    .eq("club_id", club.id)
     .eq("profile_id", profile.id)
     .maybeSingle();
 
   const { error } = await admin.from("memberships").upsert({
-    club_id: clubId,
+    club_id: club.id,
     profile_id: profile.id,
+    status: "approved",
     message: message?.trim() || null,
-    status,
   });
-
   if (error) return NextResponse.json({ error: "Intern feil" }, { status: 500 });
 
-  if (status === "approved" && existing?.status !== "approved") {
-    const { data: currClub } = await admin.from("clubs").select("members").eq("id", clubId).single();
-    if (currClub) {
-      await admin.from("clubs").update({ members: currClub.members + 1 }).eq("id", clubId);
-    }
+  if (existing?.status !== "approved") {
+    await admin.from("clubs").update({ members: club.members + 1 }).eq("id", club.id);
   }
 
-  return NextResponse.json({ ok: true, status });
+  return NextResponse.json({ ok: true });
 }

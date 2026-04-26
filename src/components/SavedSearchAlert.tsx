@@ -21,6 +21,8 @@ export function SavedSearchAlert({
 }: Props) {
   const [open, setOpen] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [savedId, setSavedId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     email: "",
@@ -36,7 +38,7 @@ export function SavedSearchAlert({
     if (!form.email.trim()) return;
     setSubmitting(true);
     try {
-      await createSavedSearch({
+      const id = await createSavedSearch({
         notifyEmail: form.email.trim(),
         keywords: form.keywords.trim() || undefined,
         category: form.category || undefined,
@@ -44,6 +46,7 @@ export function SavedSearchAlert({
         sizeHint: form.sizeHint.trim() || undefined,
         clubId: form.clubId ? Number(form.clubId) : undefined,
       });
+      setSavedId(id);
       setSaved(true);
       setOpen(false);
     } catch {
@@ -52,15 +55,33 @@ export function SavedSearchAlert({
     setSubmitting(false);
   }
 
+  async function handleDelete() {
+    if (!savedId) return;
+    setDeleting(true);
+    await fetch(`/api/saved-searches?id=${savedId}`, { method: "DELETE" }).catch(() => {});
+    setSaved(false);
+    setSavedId(null);
+    setDeleting(false);
+  }
+
   if (saved) {
     return (
-      <div className="flex items-center gap-3 rounded-xl bg-forest-light border border-forest/20 px-5 py-4">
-        <svg className="h-5 w-5 text-forest flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-        </svg>
-        <p className="text-sm text-forest font-medium">
-          Varsel lagret! Vi gir deg beskjed når noe matcher søket ditt.
-        </p>
+      <div className="flex items-center justify-between gap-3 rounded-xl bg-forest-light border border-forest/20 px-5 py-4">
+        <div className="flex items-center gap-3">
+          <svg className="h-5 w-5 text-forest flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+          </svg>
+          <p className="text-sm text-forest font-medium">
+            Varsel lagret! Vi gir deg beskjed når noe matcher søket ditt.
+          </p>
+        </div>
+        <button
+          onClick={handleDelete}
+          disabled={deleting}
+          className="text-xs text-forest/60 hover:text-forest transition-colors flex-shrink-0 disabled:opacity-50"
+        >
+          {deleting ? "Sletter..." : "Slett varsel"}
+        </button>
       </div>
     );
   }
