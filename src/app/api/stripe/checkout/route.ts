@@ -88,6 +88,14 @@ export async function POST(req: NextRequest) {
         },
         quantity: 1,
       },
+      {
+        price_data: {
+          currency: "nok",
+          unit_amount: feeOre,
+          product_data: { name: "Servicegebyr" },
+        },
+        quantity: 1,
+      },
     ],
     payment_intent_data: {
       application_fee_amount: feeOre,

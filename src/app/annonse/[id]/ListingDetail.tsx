@@ -588,61 +588,74 @@ export function ListingDetail({ id }: { id: string }) {
       )}
 
       {/* Checkout confirmation */}
-      {showCheckoutConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => !checkingOut && setShowCheckoutConfirm(false)}
-          />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
-            <h2 className="font-display text-xl font-bold text-ink">Bekreft kjøp</h2>
+      {showCheckoutConfirm && (() => {
+        const isPro = (listing.clubs as { is_pro?: boolean })?.is_pro || (listing.profiles as { is_pro?: boolean })?.is_pro;
+        const feeNok = Math.round(listing.price * (isPro ? 2 : 5)) / 100;
+        const totalNok = listing.price + feeNok;
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => !checkingOut && setShowCheckoutConfirm(false)}
+            />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
+              <h2 className="font-display text-xl font-bold text-ink">Bekreft kjøp</h2>
 
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-cream">
-              {listing.images[0] && listing.images[0] !== "/placeholder-listing.svg" ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={listing.images[0]}
-                  alt=""
-                  className="h-14 w-14 rounded-lg object-cover flex-shrink-0"
-                />
-              ) : (
-                <div className="h-14 w-14 rounded-lg bg-border flex-shrink-0" />
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-ink leading-snug">{listing.title}</p>
-                <p className="text-xs text-ink-light mt-0.5">{listing.profiles.name}</p>
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-cream">
+                {listing.images[0] && listing.images[0] !== "/placeholder-listing.svg" ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={listing.images[0]} alt="" className="h-14 w-14 rounded-lg object-cover flex-shrink-0" />
+                ) : (
+                  <div className="h-14 w-14 rounded-lg bg-border flex-shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-ink leading-snug">{listing.title}</p>
+                  <p className="text-xs text-ink-light mt-0.5">{listing.profiles.name}</p>
+                </div>
               </div>
-              <p className="text-lg font-bold text-forest flex-shrink-0">
-                {listing.price.toLocaleString("nb-NO")} kr
-              </p>
-            </div>
 
-            <div className="flex items-center gap-2 rounded-lg bg-forest-light px-3 py-2.5 text-xs text-forest">
-              <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-              </svg>
-              Trygt kjøp — betaling håndteres sikkert via Stripe
-            </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between text-ink-mid">
+                  <span>Varepris</span>
+                  <span>{listing.price.toLocaleString("nb-NO")} kr</span>
+                </div>
+                <div className="flex justify-between text-ink-mid">
+                  <span>Servicegebyr</span>
+                  <span>{feeNok.toLocaleString("nb-NO")} kr</span>
+                </div>
+                <div className="flex justify-between font-bold text-ink border-t border-border pt-2 mt-2">
+                  <span>Totalt</span>
+                  <span className="text-forest">{totalNok.toLocaleString("nb-NO")} kr</span>
+                </div>
+              </div>
 
-            <div className="flex flex-col gap-2 pt-1">
-              <button
-                onClick={handleBuyNow}
-                disabled={checkingOut}
-                className="w-full rounded-lg bg-ink py-3 text-sm font-bold text-white hover:bg-ink/90 transition-colors disabled:opacity-60"
-              >
-                {checkingOut ? "Åpner betaling..." : `Betal ${listing.price.toLocaleString("nb-NO")} kr`}
-              </button>
-              <button
-                onClick={() => setShowCheckoutConfirm(false)}
-                disabled={checkingOut}
-                className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-ink-mid hover:bg-cream transition-colors disabled:opacity-40"
-              >
-                Avbryt
-              </button>
+              <div className="flex items-center gap-2 rounded-lg bg-forest-light px-3 py-2.5 text-xs text-forest">
+                <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+                Trygt kjøp — betaling håndteres sikkert via Stripe
+              </div>
+
+              <div className="flex flex-col gap-2 pt-1">
+                <button
+                  onClick={handleBuyNow}
+                  disabled={checkingOut}
+                  className="w-full rounded-lg bg-ink py-3 text-sm font-bold text-white hover:bg-ink/90 transition-colors disabled:opacity-60"
+                >
+                  {checkingOut ? "Åpner betaling..." : `Betal ${totalNok.toLocaleString("nb-NO")} kr`}
+                </button>
+                <button
+                  onClick={() => setShowCheckoutConfirm(false)}
+                  disabled={checkingOut}
+                  className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-ink-mid hover:bg-cream transition-colors disabled:opacity-40"
+                >
+                  Avbryt
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Image lightbox */}
       {lightboxOpen && (
