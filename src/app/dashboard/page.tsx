@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { showSuccess, showError } from "@/components/Toaster";
+import BankIDButton from "@/components/BankIDButton";
 
 type Tab = "innboks" | "annonser" | "anmeldelser" | "profil";
 
@@ -23,6 +24,7 @@ type UserProfile = {
   stripe_onboarding_complete: boolean;
   is_pro: boolean;
   stripe_subscription_id: string | null;
+  bankid_verified: boolean;
 };
 
 type ConvListing = { id: number; title: string; price: number };
@@ -86,6 +88,7 @@ function DashboardContent() {
   const stripeReturn = searchParams.get("stripe");
   const proReturn = searchParams.get("pro");
   const boostReturn = searchParams.get("boost");
+  const bankidReturn = searchParams.get("bankid");
 
   useEffect(() => {
     let mounted = true;
@@ -112,6 +115,10 @@ function DashboardContent() {
         showSuccess("Velkommen som Selger Pro! Du betaler nå kun 2% gebyr på salg.");
       } else if (boostReturn === "success") {
         showSuccess("Annonsen er nå fremhevet i 7 dager!");
+      } else if (bankidReturn === "verified") {
+        showSuccess("BankID-verifisering fullført! Profilen din er nå bekreftet.");
+      } else if (bankidReturn === "error") {
+        showError("BankID-verifisering mislyktes. Prøv igjen.");
       }
     }
 
@@ -123,7 +130,7 @@ function DashboardContent() {
     });
 
     return () => { mounted = false; subscription.unsubscribe(); };
-  }, [router, stripeReturn, proReturn, boostReturn]);
+  }, [router, stripeReturn, proReturn, boostReturn, bankidReturn]);
 
   if (loading) {
     return (
@@ -1223,6 +1230,14 @@ function ProfilTab({
       <StripeConnectCard profile={profile} />
 
       <SelgerProCard profile={profile} />
+
+      <div className="bg-white rounded-xl p-6 space-y-3">
+        <div>
+          <h2 className="font-display text-base font-semibold text-ink">Identitetsverifisering</h2>
+          <p className="text-xs text-ink-light mt-0.5">Verifiser hvem du er med BankID for å øke tilliten hos kjøpere</p>
+        </div>
+        <BankIDButton profileId={profile.id} verified={profile.bankid_verified} />
+      </div>
 
       <div className="bg-white rounded-xl p-6">
         <h2 className="font-display text-base font-semibold text-ink mb-4">Din statistikk</h2>

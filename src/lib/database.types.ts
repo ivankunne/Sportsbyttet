@@ -349,6 +349,7 @@ export type Database = {
           auth_user_id: string | null
           avatar: string
           avatar_url: string | null
+          bankid_verified: boolean
           bio: string
           club_id: number | null
           created_at: string
@@ -369,6 +370,7 @@ export type Database = {
           auth_user_id?: string | null
           avatar?: string
           avatar_url?: string | null
+          bankid_verified?: boolean
           bio?: string
           club_id?: number | null
           created_at?: string
@@ -389,6 +391,7 @@ export type Database = {
           auth_user_id?: string | null
           avatar?: string
           avatar_url?: string | null
+          bankid_verified?: boolean
           bio?: string
           club_id?: number | null
           created_at?: string
