@@ -343,7 +343,10 @@ export default function ClubAdminPage({
     logo_url: "",
     is_membership_gated: false,
     member_email_domain: "",
+    lat: "",
+    lng: "",
   });
+  const [geoFetching, setGeoFetching] = useState(false);
   const [brandingSaving, setBrandingSaving] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
@@ -376,6 +379,8 @@ export default function ClubAdminPage({
         logo_url: clubData.logo_url ?? "",
         is_membership_gated: clubData.is_membership_gated ?? false,
         member_email_domain: clubData.member_email_domain ?? "",
+        lat: clubData.lat != null ? String(clubData.lat) : "",
+        lng: clubData.lng != null ? String(clubData.lng) : "",
       });
 
       const [{ data: listingsData }, { data: sellersData }] = await Promise.all([
@@ -479,6 +484,8 @@ export default function ClubAdminPage({
       logo_url: branding.logo_url || null,
       is_membership_gated: branding.is_membership_gated,
       member_email_domain: branding.member_email_domain || null,
+      lat: branding.lat ? parseFloat(branding.lat) : null,
+      lng: branding.lng ? parseFloat(branding.lng) : null,
       updated_at: new Date().toISOString(),
     }).eq("id", club.id);
     setBrandingSaving(false);
@@ -486,7 +493,7 @@ export default function ClubAdminPage({
       showError(`Kunne ikke lagre: ${error.message}`);
       return;
     }
-    setClub({ ...club, ...branding, secondary_color: branding.secondary_color || null, description: branding.description || null, logo_url: branding.logo_url || null, member_email_domain: branding.member_email_domain || null });
+    setClub({ ...club, ...branding, secondary_color: branding.secondary_color || null, description: branding.description || null, logo_url: branding.logo_url || null, member_email_domain: branding.member_email_domain || null, lat: branding.lat ? parseFloat(branding.lat) : null, lng: branding.lng ? parseFloat(branding.lng) : null });
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       await fetch("/api/revalidate", {
@@ -1332,6 +1339,75 @@ export default function ClubAdminPage({
                   Brukere som oppgir en e-post med dette domenet blir automatisk godkjent som medlemmer. Skriv uten @, f.eks. <span className="font-mono">brannsk.no</span>
                 </p>
               </div>
+            </div>
+
+            {/* Location */}
+            <div className="bg-white rounded-xl border border-border p-6 space-y-4">
+              <div>
+                <h3 className="font-display text-base font-semibold text-ink">Plassering</h3>
+                <p className="text-xs text-ink-light mt-0.5">
+                  Brukes til å sortere annonser etter avstand i søk. Trykk knappen for å bruke din nåværende posisjon, eller lim inn koordinater fra Google Maps.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-ink mb-1.5">Breddegrad (lat)</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={branding.lat}
+                    onChange={(e) => setBranding({ ...branding, lat: e.target.value })}
+                    placeholder="59.9139"
+                    className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest font-mono"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-ink mb-1.5">Lengdegrad (lng)</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={branding.lng}
+                    onChange={(e) => setBranding({ ...branding, lng: e.target.value })}
+                    placeholder="10.7522"
+                    className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest font-mono"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    disabled={geoFetching}
+                    onClick={() => {
+                      if (!navigator.geolocation) return;
+                      setGeoFetching(true);
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                          setBranding((b) => ({
+                            ...b,
+                            lat: pos.coords.latitude.toFixed(6),
+                            lng: pos.coords.longitude.toFixed(6),
+                          }));
+                          setGeoFetching(false);
+                        },
+                        () => setGeoFetching(false)
+                      );
+                    }}
+                    className="rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-ink-mid hover:bg-cream transition-colors disabled:opacity-50 whitespace-nowrap flex items-center gap-2"
+                  >
+                    <svg className="h-4 w-4 text-forest flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm6 2.5a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {geoFetching ? "Henter..." : "Min posisjon"}
+                  </button>
+                </div>
+              </div>
+              {branding.lat && branding.lng && (
+                <p className="text-xs text-forest flex items-center gap-1.5">
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                  Posisjon satt — husk å lagre
+                </p>
+              )}
             </div>
 
             {/* Membership gating */}
