@@ -145,6 +145,8 @@ export type Database = {
           invite_token: string | null
           is_membership_gated: boolean
           is_pro: boolean
+          lat: number | null
+          lng: number | null
           logo_url: string | null
           member_email_domain: string | null
           members: number
@@ -167,6 +169,8 @@ export type Database = {
           invite_token?: string | null
           is_membership_gated?: boolean
           is_pro?: boolean
+          lat?: number | null
+          lng?: number | null
           logo_url?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -189,6 +193,8 @@ export type Database = {
           invite_token?: string | null
           is_membership_gated?: boolean
           is_pro?: boolean
+          lat?: number | null
+          lng?: number | null
           logo_url?: string | null
           member_email_domain?: string | null
           members?: number

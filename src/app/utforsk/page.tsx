@@ -46,6 +46,9 @@ function ExplorePage() {
   const [activeCategory, setActiveCategory] = useState(searchParams.get("kategori") ?? "");
   const [sort, setSort] = useState(searchParams.get("sorter") ?? "nyeste");
   const [condition, setCondition] = useState("");
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState("");
 
   // Debounced filters (text / price — wait 350ms after last change)
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
@@ -74,6 +77,29 @@ function ExplorePage() {
     const id = setTimeout(() => { setDebouncedMin(minPrice); setDebouncedMax(maxPrice); }, 600);
     return () => clearTimeout(id);
   }, [minPrice, maxPrice]);
+
+  // Request geolocation when "nær-meg" sort is selected
+  useEffect(() => {
+    if (sort !== "nær-meg") return;
+    if (userLocation) return;
+    if (!navigator.geolocation) {
+      setGeoError("Nettleseren din støtter ikke posisjonsdata.");
+      return;
+    }
+    setGeoLoading(true);
+    setGeoError("");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGeoLoading(false);
+      },
+      () => {
+        setGeoError("Kunne ikke hente posisjon. Sjekk at du har gitt tillatelse.");
+        setGeoLoading(false);
+        setSort("nyeste");
+      }
+    );
+  }, [sort, userLocation]);
 
   // Sync URL
   useEffect(() => {
@@ -120,22 +146,44 @@ function ExplorePage() {
       switch (sort) {
         case "pris-lav": q = q.order("price", { ascending: true }); break;
         case "pris-hoy": q = q.order("price", { ascending: false }); break;
+        case "nær-meg": q = q.order("created_at", { ascending: false }); break;
         default: q = q.order("created_at", { ascending: false });
       }
 
       const { data } = await q;
-      // Discard stale responses if a newer fetch was triggered
       if (token !== fetchRef.current) return;
-      setListings((data ?? []) as ListingWithRelations[]);
+
+      let result = (data ?? []) as ListingWithRelations[];
+
+      if (sort === "nær-meg" && userLocation) {
+        result = result
+          .filter((l) => l.clubs?.lat != null && l.clubs?.lng != null)
+          .sort((a, b) => {
+            const da = haversineKm(userLocation.lat, userLocation.lng, a.clubs.lat!, a.clubs.lng!);
+            const db = haversineKm(userLocation.lat, userLocation.lng, b.clubs.lat!, b.clubs.lng!);
+            return da - db;
+          });
+      }
+
+      setListings(result);
       setLoading(false);
     })();
-  }, [debouncedQuery, activeCategory, sort, condition, debouncedMin, debouncedMax, categories, categoriesReady]);
+  }, [debouncedQuery, activeCategory, sort, condition, debouncedMin, debouncedMax, categories, categoriesReady, userLocation]);
+
+  function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
 
   const uniqueClubs = new Set(listings.map((l) => l.clubs?.name).filter(Boolean));
 
   function resetAll() {
     setQuery(""); setActiveCategory(""); setSort("nyeste");
     setCondition(""); setMinPrice(""); setMaxPrice("");
+    setUserLocation(null); setGeoError("");
   }
 
   const hasActiveFilters = query || activeCategory || condition || minPrice || maxPrice || sort !== "nyeste";
@@ -172,6 +220,7 @@ function ExplorePage() {
             <option value="nyeste">Nyeste</option>
             <option value="pris-lav">Laveste pris</option>
             <option value="pris-hoy">Høyeste pris</option>
+            <option value="nær-meg">Nær meg</option>
           </select>
         </div>
       </div>
@@ -239,6 +288,29 @@ function ExplorePage() {
           )}
         </div>
       </div>
+
+      {/* Geo status */}
+      {sort === "nær-meg" && (geoLoading || geoError || userLocation) && (
+        <div className="mb-4">
+          {geoLoading && (
+            <div className="flex items-center gap-2 text-xs text-ink-light">
+              <div className="h-3.5 w-3.5 rounded-full border-2 border-forest border-t-transparent animate-spin" />
+              Henter posisjon...
+            </div>
+          )}
+          {geoError && (
+            <p className="text-xs text-red-500">{geoError}</p>
+          )}
+          {userLocation && !geoLoading && (
+            <div className="flex items-center gap-1.5 text-xs text-forest">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm6 2.5a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Sortert etter avstand fra deg
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Save search alert */}
       <div className="mb-6">
