@@ -1344,35 +1344,33 @@ export default function ClubAdminPage({
             {/* Location */}
             <div className="bg-white rounded-xl border border-border p-6 space-y-4">
               <div>
-                <h3 className="font-display text-base font-semibold text-ink">Plassering</h3>
+                <h3 className="font-display text-base font-semibold text-ink">Klubbens plassering</h3>
                 <p className="text-xs text-ink-light mt-0.5">
-                  Brukes til å sortere annonser etter avstand i søk. Trykk knappen for å bruke din nåværende posisjon, eller lim inn koordinater fra Google Maps.
+                  Gjør at kjøpere kan finne annonser fra klubben din via «Nær meg»-søk.
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1">
-                  <label className="block text-xs font-medium text-ink mb-1.5">Breddegrad (lat)</label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={branding.lat}
-                    onChange={(e) => setBranding({ ...branding, lat: e.target.value })}
-                    placeholder="59.9139"
-                    className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest font-mono"
-                  />
+
+              {branding.lat && branding.lng ? (
+                <div className="flex items-center justify-between gap-4 rounded-xl bg-forest-light border border-forest/20 px-4 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <svg className="h-5 w-5 text-forest flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm6 2.5a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-semibold text-forest">Plassering er satt</p>
+                      <p className="text-xs text-forest/70 font-mono">{parseFloat(branding.lat).toFixed(4)}, {parseFloat(branding.lng).toFixed(4)}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setBranding({ ...branding, lat: "", lng: "" })}
+                    className="text-xs text-forest/60 hover:text-red-500 transition-colors flex-shrink-0"
+                  >
+                    Fjern
+                  </button>
                 </div>
-                <div className="flex-1">
-                  <label className="block text-xs font-medium text-ink mb-1.5">Lengdegrad (lng)</label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={branding.lng}
-                    onChange={(e) => setBranding({ ...branding, lng: e.target.value })}
-                    placeholder="10.7522"
-                    className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest font-mono"
-                  />
-                </div>
-                <div className="flex items-end">
+              ) : (
+                <div className="space-y-3">
                   <button
                     type="button"
                     disabled={geoFetching}
@@ -1391,22 +1389,39 @@ export default function ClubAdminPage({
                         () => setGeoFetching(false)
                       );
                     }}
-                    className="rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-ink-mid hover:bg-cream transition-colors disabled:opacity-50 whitespace-nowrap flex items-center gap-2"
+                    className="w-full rounded-xl border-2 border-dashed border-forest/30 px-5 py-4 flex items-center justify-center gap-3 text-sm font-semibold text-forest hover:bg-forest-light hover:border-forest/50 transition-all duration-[120ms] disabled:opacity-50"
                   >
-                    <svg className="h-4 w-4 text-forest flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm6 2.5a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    {geoFetching ? "Henter..." : "Min posisjon"}
+                    {geoFetching ? "Henter posisjon..." : "Trykk her for å hente klubbens plassering automatisk"}
                   </button>
+                  <p className="text-xs text-ink-light text-center">— eller fyll inn koordinater manuelt —</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-ink mb-1.5">Breddegrad (lat)</label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={branding.lat}
+                        onChange={(e) => setBranding({ ...branding, lat: e.target.value })}
+                        placeholder="59.9139"
+                        className="w-full rounded-lg border border-border px-3 py-2 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-ink mb-1.5">Lengdegrad (lng)</label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={branding.lng}
+                        onChange={(e) => setBranding({ ...branding, lng: e.target.value })}
+                        placeholder="10.7522"
+                        className="w-full rounded-lg border border-border px-3 py-2 text-sm text-ink placeholder:text-ink-light focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest font-mono"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              {branding.lat && branding.lng && (
-                <p className="text-xs text-forest flex items-center gap-1.5">
-                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                  Posisjon satt — husk å lagre
-                </p>
               )}
             </div>
 
